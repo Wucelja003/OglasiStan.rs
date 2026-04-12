@@ -20,7 +20,9 @@
   },
   "homepage": "https://github.com/Wucelja003/OglasiStan.rs#readme",
   "dependencies": {
+    "dotenv": "^17.4.1",
     "express": "^5.2.1",
+    "mongoose": "^9.4.1",
     "nodemon": "^3.1.14"
   }
 }
