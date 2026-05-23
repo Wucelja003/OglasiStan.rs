@@ -92,6 +92,10 @@ export default function Header() {
                 <img
                   src={currentUser.avatar}
                   alt="profile"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(currentUser.username || 'U')}&backgroundColor=E07B2A`;
+                  }}
                   className='w-9 h-9 rounded-full object-cover'
                   style={{ border: '2px solid #E07B2A' }}
                 />

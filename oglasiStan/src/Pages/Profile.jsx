@@ -124,6 +124,10 @@ export default function Profile() {
                 onClick={() => fileRef.current.click()}
                 src={currentUser.avatar}
                 alt='avatar'
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(currentUser.username || 'U')}&backgroundColor=E07B2A`;
+                }}
                 className='w-24 h-24 rounded-2xl object-cover cursor-pointer transition-all duration-200 hover:opacity-80'
                 style={{ border: '3px solid #E07B2A', boxShadow: '0 4px 20px rgba(224,123,42,0.3)' }}
               />
