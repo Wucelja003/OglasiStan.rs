@@ -71,79 +71,144 @@ export default function Home() {
     <div>
       {/* ── HERO ── */}
       <section
-        className='relative flex items-center justify-center'
+        className='relative flex items-center justify-center overflow-hidden'
         style={{ minHeight: 'calc(100vh - 96px)' }}
       >
+        <style>{`
+          @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(32px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes shimmer {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
+          .hero-badge   { animation: fadeUp 0.7s ease both; }
+          .hero-title   { animation: fadeUp 0.7s 0.15s ease both; }
+          .hero-sub     { animation: fadeUp 0.7s 0.3s ease both; }
+          .hero-btns    { animation: fadeUp 0.7s 0.45s ease both; }
+          .hero-stats   { animation: fadeUp 0.7s 0.6s ease both; }
+
+          .btn-primary {
+            position: relative; overflow: hidden;
+            background: #E07B2A;
+            transition: transform 0.2s, box-shadow 0.2s;
+          }
+          .btn-primary::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%);
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.2s;
+          }
+          .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(224,123,42,0.55); }
+          .btn-primary:hover::after { opacity: 1; animation: shimmer 0.6s linear; }
+          .btn-primary:active { transform: translateY(0) scale(0.97); }
+
+          .btn-ghost {
+            position: relative; overflow: hidden;
+            transition: transform 0.2s, background 0.2s;
+          }
+          .btn-ghost:hover { transform: translateY(-2px); background: rgba(255,255,255,0.2) !important; }
+          .btn-ghost:active { transform: translateY(0) scale(0.97); }
+        `}</style>
+
         {/* Pozadinska slika */}
         <img
           src='/NoviSad.jpg'
           alt='Novi Sad'
           className='absolute inset-0 w-full h-full object-cover'
+          style={{ transform: 'scale(1.03)' }}
         />
 
-        {/* Tamni overlay */}
+        {/* Overlay — jači gradijent odozdo */}
         <div
           className='absolute inset-0'
-          style={{ background: 'linear-gradient(to bottom, rgba(26,22,18,0.45) 0%, rgba(26,22,18,0.7) 100%)' }}
+          style={{ background: 'linear-gradient(to bottom, rgba(10,8,6,0.35) 0%, rgba(10,8,6,0.78) 100%)' }}
         />
 
         {/* Sadržaj */}
-        <div className='relative z-10 text-center px-4 max-w-3xl mx-auto'>
-          {/* Logo tekst */}
-          <p
-            className='text-sm font-bold uppercase tracking-widest mb-4'
-            style={{ color: '#E07B2A' }}
-          >
-            OglasiStan.rs
-          </p>
+        <div className='relative z-10 text-center px-4 max-w-4xl mx-auto'>
+
+          {/* Badge */}
+          <div className='hero-badge inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-7'
+            style={{ background: 'rgba(224,123,42,0.18)', border: '1px solid rgba(224,123,42,0.45)' }}>
+            <span className='w-1.5 h-1.5 rounded-full' style={{ background: '#E07B2A' }} />
+            <span className='text-xs font-bold uppercase tracking-widest' style={{ color: '#E07B2A' }}>
+              OglasiStan.rs
+            </span>
+          </div>
 
           {/* Naslov */}
-          <h1 className='text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-5'>
+          <h1 className='hero-title font-extrabold text-white leading-[1.08] mb-6'
+            style={{ fontSize: 'clamp(2.6rem, 7vw, 5rem)', letterSpacing: '-0.02em' }}>
             Pronađi svoj{' '}
-            <span style={{ color: '#E07B2A' }}>novi dom</span>
+            <span style={{
+              background: 'linear-gradient(135deg, #E07B2A 0%, #F5A623 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}>
+              novi dom
+            </span>
           </h1>
 
           {/* Podtekst */}
-          <p
-            className='text-base sm:text-lg mb-10 max-w-xl mx-auto leading-relaxed'
-            style={{ color: 'rgba(255,255,255,0.75)' }}
-          >
-            Dobro došli na OglasiStan — sajt gdje možete pronaći, oglasiti
-            ili iznajmiti nekretninu koja vam odgovara.
+          <p className='hero-sub text-lg sm:text-xl mb-10 max-w-2xl mx-auto leading-relaxed'
+            style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 400 }}>
+            Kupovina, prodaja i iznajmljivanje nekretnina —
+            <br className='hidden sm:block' /> bez posrednika, bez provizije.
           </p>
 
           {/* Dugmad */}
-          <div className='flex flex-col sm:flex-row items-center justify-center gap-3'>
+          <div className='hero-btns flex flex-col sm:flex-row items-center justify-center gap-4 mb-14'>
             <Link
               to='/create-listing'
-              className='w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wider text-white transition-all duration-200 active:scale-95'
-              style={{ background: '#E07B2A', boxShadow: '0 4px 24px rgba(224,123,42,0.45)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#C45F12'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#E07B2A'; }}
+              className='btn-primary w-full sm:w-auto flex items-center justify-center gap-2.5 px-9 py-4 rounded-2xl font-bold text-white'
+              style={{ fontSize: '0.95rem', letterSpacing: '0.01em', boxShadow: '0 4px 24px rgba(224,123,42,0.4)' }}
             >
+              <svg className='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2.5}>
+                <path strokeLinecap='round' strokeLinejoin='round' d='M12 4.5v15m7.5-7.5h-15' />
+              </svg>
               Oglasi stan
             </Link>
 
             <Link
               to='/search'
-              className='w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wider transition-all duration-200 active:scale-95'
+              className='btn-ghost w-full sm:w-auto flex items-center justify-center gap-2.5 px-9 py-4 rounded-2xl font-bold text-white'
               style={{
-                background: 'rgba(255,255,255,0.12)',
-                color: 'white',
-                border: '1.5px solid rgba(255,255,255,0.35)',
-                backdropFilter: 'blur(8px)',
+                fontSize: '0.95rem',
+                letterSpacing: '0.01em',
+                background: 'rgba(255,255,255,0.1)',
+                border: '1.5px solid rgba(255,255,255,0.3)',
+                backdropFilter: 'blur(12px)',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
             >
+              <svg className='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2.5}>
+                <path strokeLinecap='round' strokeLinejoin='round' d='M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z' />
+              </svg>
               Pretraži ponude
             </Link>
+          </div>
+
+          {/* Statistike */}
+          <div className='hero-stats flex items-center justify-center gap-8 sm:gap-12'>
+            {[
+              { value: '100%', label: 'Besplatno' },
+              { value: '0', label: 'Provizija' },
+              { value: '24/7', label: 'Dostupno' },
+            ].map(({ value, label }) => (
+              <div key={label} className='text-center'>
+                <p className='text-2xl sm:text-3xl font-extrabold text-white' style={{ letterSpacing: '-0.02em' }}>{value}</p>
+                <p className='text-xs uppercase tracking-widest mt-0.5' style={{ color: 'rgba(255,255,255,0.45)' }}>{label}</p>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Scroll indicator */}
         <div className='absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 animate-bounce'>
-          <svg className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)' strokeWidth={2}>
+          <svg className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.4)' strokeWidth={2}>
             <path strokeLinecap='round' strokeLinejoin='round' d='M19 9l-7 7-7-7' />
           </svg>
         </div>

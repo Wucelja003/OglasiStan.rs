@@ -42,7 +42,7 @@ export default function Header() {
       <div className='flex justify-between items-center max-w-6xl mx-auto px-4 py-3'>
 
         <Link to='/' className='flex items-center'>
-          <img src='/OglasiStan:FullLogo.svg' alt='OglasiStan' className='h-20' />
+          <img src='/OglasiStan-FullLogo.svg' alt='OglasiStan' className='h-20' />
         </Link>
 
         <form

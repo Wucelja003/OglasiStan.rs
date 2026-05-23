@@ -68,7 +68,7 @@ export default function Footer() {
           <div className='flex flex-col items-start md:items-end justify-between gap-6'>
             <Link to='/'>
               <img
-                src='/OglasiStan:FullLogo.svg'
+                src='/OglasiStan-FullLogo.svg'
                 alt='OglasiStan'
                 className='h-16 opacity-90 hover:opacity-100 transition-opacity'
                 style={{ filter: 'brightness(0) invert(1)' }}

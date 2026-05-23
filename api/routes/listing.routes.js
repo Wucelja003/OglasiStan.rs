@@ -10,6 +10,5 @@ router.get('/get/:id', getListing);
 router.post('/update/:id', verifyToken, updateListing);
 router.get('/user/:id', verifyToken, getUserListings);
 router.delete('/delete/:id', verifyToken, deleteListing);
-router.get('/get', getListing);
 
 export default router;
