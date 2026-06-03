@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux'
-import { useRef, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { updateUserStart, updateUserSuccess, updateUserFailure, deleteUserFailure,
 deleteUserStart, deleteUserSuccess, signOutUserStart,
 signOutUserFailure,
@@ -12,8 +12,15 @@ const inputStyle = { background: '#F2EDE3', border: '1px solid #DDD7CC', color: 
 const focusStyle = { border: '1.5px solid #E07B2A', boxShadow: '0 0 0 3px rgba(224,123,42,0.12)' };
 const blurStyle  = { border: '1px solid #DDD7CC', boxShadow: 'none' };
 
+// Inicijali iz korisničkog imena (npr. "Marko Petrović" -> "MP", "marko" -> "MA")
+const getInitials = (name) => {
+  if (!name) return 'U';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return parts[0].slice(0, 2).toUpperCase();
+};
+
 export default function Profile() {
-  const fileRef = useRef(null);
   const { currentUser, loading, error } = useSelector(state => state.user);
   const [FormData, setFormData] = useState({});
   const [updateSuccess, setUpdateSuccess] = useState(false);
@@ -120,28 +127,12 @@ export default function Profile() {
           {/* Avatar + ime */}
           <div className='flex flex-col sm:flex-row items-center sm:items-end gap-4 mb-8'>
             <div className='relative flex-shrink-0'>
-              <img
-                onClick={() => fileRef.current.click()}
-                src={currentUser.avatar}
-                alt='avatar'
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(currentUser.username || 'U')}&backgroundColor=E07B2A`;
-                }}
-                className='w-24 h-24 rounded-2xl object-cover cursor-pointer transition-all duration-200 hover:opacity-80'
-                style={{ border: '3px solid #E07B2A', boxShadow: '0 4px 20px rgba(224,123,42,0.3)' }}
-              />
               <div
-                className='absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer'
-                style={{ background: '#E07B2A' }}
-                onClick={() => fileRef.current.click()}
+                className='w-24 h-24 rounded-2xl flex items-center justify-center select-none'
+                style={{ border: '3px solid #E07B2A', boxShadow: '0 4px 20px rgba(224,123,42,0.3)', background: 'linear-gradient(135deg, #E07B2A 0%, #C45F12 100%)' }}
               >
-                <svg className='w-3.5 h-3.5' fill='none' viewBox='0 0 24 24' stroke='white' strokeWidth={2.5}>
-                  <path strokeLinecap='round' strokeLinejoin='round' d='M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z' />
-                  <path strokeLinecap='round' strokeLinejoin='round' d='M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z' />
-                </svg>
+                <span className='text-3xl font-extrabold text-white tracking-wide'>{getInitials(currentUser.username)}</span>
               </div>
-              <input type='file' ref={fileRef} hidden accept='image/*' />
             </div>
             <div className='text-center sm:text-left'>
               <h1 className='text-2xl font-extrabold' style={{ color: '#1A1612', letterSpacing: '-0.02em' }}>

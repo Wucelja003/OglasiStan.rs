@@ -136,7 +136,7 @@ export default function Home() {
             style={{ background: 'rgba(224,123,42,0.18)', border: '1px solid rgba(224,123,42,0.45)' }}>
             <span className='w-1.5 h-1.5 rounded-full' style={{ background: '#E07B2A' }} />
             <span className='text-xs font-bold uppercase tracking-widest' style={{ color: '#E07B2A' }}>
-              OglasiStan.rs
+              OglasiStan.com
             </span>
           </div>
 
