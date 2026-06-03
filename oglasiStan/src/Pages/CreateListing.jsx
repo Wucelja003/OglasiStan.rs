@@ -6,10 +6,8 @@ const GREJANJE_OPTIONS = [
   'Centralno grejanje',
   'Etažno grejanje',
   'Podno grejanje',
-  'Klima uređaj',
   'Struja',
   'Gas',
-  'Pelet',
   'Drvo',
 ];
 
@@ -201,11 +199,11 @@ export default function CreateListing() {
               >
                 1
               </span>
-              Naziv oglasa
+              Naslov oglasa
             </h2>
             <div>
-              <label className={labelClass} style={labelStyle} htmlFor='naziv'>
-                Naziv
+              <label className={labelClass} style={labelStyle} htmlFor='Naslov'>
+                Naslov
               </label>
               <input
                 type='text'
