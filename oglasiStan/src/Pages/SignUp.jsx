@@ -7,14 +7,29 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
+  const password = formData.password || '';
+  const passwordChecks = [
+    { label: 'Najmanje 6 karaktera', valid: password.length >= 6 },
+    { label: 'Jedno veliko slovo', valid: /[A-Z]/.test(password) },
+    { label: 'Jedan broj', valid: /[0-9]/.test(password) },
+    { label: 'Jedan specijalni znak (!@#...)', valid: /[^A-Za-z0-9]/.test(password) },
+  ];
+  const passwordValid = passwordChecks.every(c => c.valid);
+  const showChecklist = passwordFocused || password.length > 0;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!passwordValid) {
+      setError('Lozinka ne ispunjava sve uslove.');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -177,8 +192,8 @@ export default function SignUp() {
                   onChange={handleChange}
                   className='w-full rounded-xl px-4 py-3.5 pr-12 text-sm outline-none transition-all duration-200'
                   style={inputStyle}
-                  onFocus={e => Object.assign(e.target.style, focusStyle)}
-                  onBlur={e => Object.assign(e.target.style, blurStyle)}
+                  onFocus={e => { Object.assign(e.target.style, focusStyle); setPasswordFocused(true); }}
+                  onBlur={e => { Object.assign(e.target.style, blurStyle); setPasswordFocused(false); }}
                 />
                 <button type='button' onClick={() => setShowPassword(v => !v)}
                   className='absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors'
@@ -197,6 +212,28 @@ export default function SignUp() {
                   )}
                 </button>
               </div>
+
+              {/* Checklist uslova za lozinku */}
+              {showChecklist && (
+                <ul className='mt-3 flex flex-col gap-1.5'>
+                  {passwordChecks.map(({ label, valid }) => (
+                    <li key={label} className='flex items-center gap-2 text-xs transition-colors'
+                      style={{ color: valid ? '#16a34a' : '#B5AFA5' }}>
+                      <span className='w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 transition-colors'
+                        style={{ background: valid ? 'rgba(22,163,74,0.12)' : '#F2EDE3', border: `1px solid ${valid ? 'rgba(22,163,74,0.3)' : '#DDD7CC'}` }}>
+                        {valid ? (
+                          <svg className='w-2.5 h-2.5' fill='none' viewBox='0 0 24 24' stroke='#16a34a' strokeWidth={3}>
+                            <path strokeLinecap='round' strokeLinejoin='round' d='M5 13l4 4L19 7' />
+                          </svg>
+                        ) : (
+                          <span className='w-1 h-1 rounded-full' style={{ background: '#B5AFA5' }} />
+                        )}
+                      </span>
+                      {label}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             {/* Submit */}
