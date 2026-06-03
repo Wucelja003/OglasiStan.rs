@@ -3,6 +3,14 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux';
 import { useState, useEffect } from 'react';
 
+// Inicijali iz korisničkog imena (npr. "Marko Petrović" -> "MP", "marko" -> "MA")
+const getInitials = (name) => {
+  if (!name) return 'U';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return parts[0].slice(0, 2).toUpperCase();
+};
+
 export default function Header() {
   const { currentUser } = useSelector(state => state.user);
   const navigate = useNavigate();
@@ -140,16 +148,12 @@ export default function Header() {
             {currentUser ? (
               <li>
                 <Link to='/profile'>
-                  <img
-                    src={currentUser.avatar}
-                    alt="profile"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(currentUser.username || 'U')}&backgroundColor=E07B2A`;
-                    }}
-                    className='w-9 h-9 rounded-full object-cover'
-                    style={{ border: '2px solid #E07B2A' }}
-                  />
+                  <div
+                    className='w-9 h-9 rounded-full flex items-center justify-center select-none'
+                    style={{ border: '2px solid #E07B2A', background: 'linear-gradient(135deg, #E07B2A 0%, #C45F12 100%)' }}
+                  >
+                    <span className='text-xs font-extrabold text-white tracking-wide'>{getInitials(currentUser.username)}</span>
+                  </div>
                 </Link>
               </li>
             ) : (

@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 const GREJANJE_OPTIONS = [
-  'Centralno grejanje',
+  'Gradsko grejanje',
   'Etažno grejanje',
   'Podno grejanje',
   'Struja',
+  'Toplotna pumpa',
   'Gas',
   'Drvo',
+  'Kombinovano'
 ];
 
 export default function CreateListing() {
