@@ -9,9 +9,11 @@ export const signup = async (req,res, next) => {
 const {username,email, password} = req.body;
 const hashedPassword = bcrypt.hashSync(password,10);
 const newUser = new User({username,email,password: hashedPassword});
-try{ 
+try{
         await newUser.save();
-        res.status(201).json("User created succesfully")
+        const token = jwt.sign({id: newUser._id}, process.env.JWT_SECRET);
+        const {password: pass, ...rest} = newUser._doc;
+        res.cookie('access_token', token, { httpOnly: true, secure: true, sameSite: 'none' }).status(201).json(rest);
 
 } catch(error) {
     next(error);

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { signInStart, signInSuccess, signInFailure } from "../redux/user/userSlice";
 import OAuth from "../components/OAuth";
 
 export default function SignUp() {
@@ -9,6 +11,7 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -33,16 +36,24 @@ export default function SignUp() {
     setLoading(true);
     setError(null);
     try {
+      dispatch(signInStart());
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      if (data.success === false) { setError(data.message); return; }
-      navigate('/sign-in');
+      if (data.success === false) {
+        setError(data.message);
+        dispatch(signInFailure(data.message));
+        return;
+      }
+      dispatch(signInSuccess(data));
+      navigate('/profile');
     } catch (err) {
       setError(err.message);
+      dispatch(signInFailure(err.message));
     } finally {
       setLoading(false);
     }
@@ -72,7 +83,7 @@ export default function SignUp() {
         .auth-row-5 { animation: fadeUp 0.5s 0.6s ease both; }
       `}</style>
 
-      {/* LIJEVA STRANA — slika */}
+
       <div className='auth-side hidden lg:flex lg:w-1/2 relative overflow-hidden'>
         <img src='/NoviSad.jpg' alt='' className='absolute inset-0 w-full h-full object-cover'
           style={{ transform: 'scale(1.05)' }} />
