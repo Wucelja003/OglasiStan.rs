@@ -23,6 +23,11 @@ const listingSchema = new mongoose.Schema(
             type: Number,
             required: true,
         },
+        area: {
+            type: Number,
+            required: false,
+            default: 0,
+        },
         bathrooms: {
             type: Number,
             required: true

@@ -115,6 +115,7 @@ export default function CreateListing() {
         description: formData.opis,
         address: formData.lokacija,
         type: formData.tip,
+        area: Number(formData.kvadratura),
         bedrooms: Number(formData.sobe),
         bathrooms: Number(formData.kupatila),
         furnished: formData.namesten,

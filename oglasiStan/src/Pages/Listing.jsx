@@ -161,6 +161,7 @@ export default function Listing() {
               <h2 className='text-sm font-bold uppercase tracking-wider mb-4' style={{ color: '#B5AFA5' }}>Specifikacije</h2>
               <div className='flex flex-col gap-3'>
                 {[
+                  ...(listing.area ? [{ label: 'Kvadratura', value: `${listing.area} m²` }] : []),
                   { label: 'Broj soba', value: listing.bedrooms },
                   { label: 'Broj kupatila', value: listing.bathrooms },
                   { label: 'Parking', value: listing.parking ? 'Da' : 'Ne' },
