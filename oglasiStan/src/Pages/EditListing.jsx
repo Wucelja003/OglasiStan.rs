@@ -389,7 +389,7 @@ export default function EditListing() {
             style={{ background: '#E07B2A', boxShadow: '0 4px 24px rgba(224,123,42,0.35)' }}
             onMouseEnter={e => { if (!loading) e.target.style.background = '#C45F12'; }}
             onMouseLeave={e => { e.target.style.background = '#E07B2A'; }}>
-            {loading ? 'Čuvanje...' : 'Sačuvaj izmjene'}
+            {loading ? 'Čuvanje...' : 'Sačuvaj izmene'}
           </button>
         </form>
       </div>
