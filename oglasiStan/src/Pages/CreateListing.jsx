@@ -22,7 +22,7 @@ export default function CreateListing() {
   const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
 
-  const MAX_SLIKE = 8;
+  const MAX_SLIKE = 15;
 
   const dodajSlike = (files) => {
     const preparovane = Array.from(files)
