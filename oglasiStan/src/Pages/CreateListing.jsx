@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 
 const GREJANJE_OPTIONS = [
   'Gradsko grejanje',
+  'Centralno grejanje',
   'Etažno grejanje',
   'Podno grejanje',
   'Struja',
