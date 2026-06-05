@@ -183,13 +183,13 @@ export default function Listing() {
             </div>
           </div>
 
-          {/* ── DESNA KOLONA: cijena + kontakt ── */}
+          {/* ── DESNA KOLONA: cena + kontakt ── */}
           <div className='flex flex-col gap-4'>
 
-            {/* Cijena */}
+            {/* Cena */}
             <div className='rounded-2xl p-5 text-center' style={{ background: '#221E1A', border: '1px solid #221E1A' }}>
               <p className='text-xs font-semibold uppercase tracking-widest mb-1' style={{ color: 'rgba(255,255,255,0.45)' }}>
-                {listing.type === 'izdavanje' ? 'Cijena / mj.' : 'Prodajna cijena'}
+                {listing.type === 'izdavanje' ? 'Cena / mj.' : 'Prodajna cena'}
               </p>
               <p className='text-3xl font-extrabold' style={{ color: '#E07B2A' }}>
                 {listing.regularPrice.toLocaleString('sr-RS')} €
