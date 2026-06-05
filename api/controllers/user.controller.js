@@ -1,6 +1,7 @@
 import { errorHandler } from "../utils/error.js";
 import bcrypt from "bcryptjs";
 import User from "../models/user.module.js";
+import { getCookieOptions } from "../utils/cookieOptions.js";
 
 export const test = (req, res) => {
     res.json({ message: 'Api route is working' })
@@ -48,7 +49,7 @@ export const updateUser = async (req, res, next) => {
       if(req.user.id !== req.params.id) return next(errorHandler(401, "You can only delete your own account!" ))
         try {
             await User.findByIdAndDelete(req.params.id)
-            res.clearCookie('access_token', { httpOnly: true, secure: true, sameSite: 'none' });
+            res.clearCookie('access_token', getCookieOptions());
             res.status(200).json('Korisnicki nalog je obrisan')
         } catch (error) {
           next(error)
