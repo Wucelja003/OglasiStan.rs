@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { optimizeImg } from '../utils/img';
 
 const PLACEHOLDER = 'https://placehold.co/400x260/F2EDE3/B5AFA5?text=Nema+slike';
 
 function ListingCard({ listing }) {
-  const img = listing.imagesUrls?.[0] || PLACEHOLDER;
+  const img = listing.imagesUrls?.[0] ? optimizeImg(listing.imagesUrls[0], 600) : PLACEHOLDER;
   return (
     <Link
       to={`/listing/${listing._id}`}
@@ -12,7 +13,7 @@ function ListingCard({ listing }) {
       style={{ background: '#FDF9F4', border: '1px solid #DDD7CC', boxShadow: '0 1px 4px rgba(26,22,18,0.06)' }}
     >
       <div className='relative overflow-hidden' style={{ aspectRatio: '3/2', background: '#F2EDE3' }}>
-        <img src={img} alt={listing.name} className='w-full h-full object-cover transition-transform duration-300 group-hover:scale-105' />
+        <img src={img} alt={listing.name} loading='lazy' className='w-full h-full object-cover transition-transform duration-300 group-hover:scale-105' />
         <span
           className='absolute top-3 left-3 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full'
           style={listing.type === 'prodaja' ? { background: '#221E1A', color: 'white' } : { background: '#E07B2A', color: 'white' }}

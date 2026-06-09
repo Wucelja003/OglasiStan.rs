@@ -173,10 +173,10 @@ export default function EditListing() {
   );
 
   return (
-    <div className='min-h-screen px-4 py-10' style={{ background: '#FAF7F2' }}>
+    <div className='min-h-screen px-3 sm:px-4 py-6 sm:py-10' style={{ background: '#FAF7F2' }}>
       <div className='max-w-2xl mx-auto'>
-        <div className='text-center mb-8'>
-          <h1 className='text-3xl font-extrabold tracking-tight' style={{ color: '#1A1612' }}>
+        <div className='text-center mb-6 sm:mb-8'>
+          <h1 className='text-2xl sm:text-3xl font-extrabold tracking-tight' style={{ color: '#1A1612' }}>
             Uredi <span style={{ color: '#E07B2A' }}>Oglas</span>
           </h1>
           <p className='mt-2 text-sm' style={{ color: '#6B6158' }}>Izmijenite detalje vašeg oglasa</p>
@@ -185,7 +185,7 @@ export default function EditListing() {
         <form onSubmit={handleSubmit} className='flex flex-col gap-5'>
 
           {/* 1. NAZIV */}
-          <div className='rounded-2xl p-6 shadow-sm' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-sm' style={sectionCard}>
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <Broj n={1} /> Naziv oglasa
             </h2>
@@ -198,7 +198,7 @@ export default function EditListing() {
           </div>
 
           {/* 2. LOKACIJA */}
-          <div className='rounded-2xl p-6 shadow-sm' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-sm' style={sectionCard}>
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <Broj n={2} /> Lokacija
             </h2>
@@ -211,7 +211,7 @@ export default function EditListing() {
           </div>
 
           {/* 3. OPIS */}
-          <div className='rounded-2xl p-6 shadow-sm' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-sm' style={sectionCard}>
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <Broj n={3} /> Opis oglasa
             </h2>
@@ -224,7 +224,7 @@ export default function EditListing() {
           </div>
 
           {/* 4. TIP */}
-          <div className='rounded-2xl p-6 shadow-sm' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-sm' style={sectionCard}>
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <Broj n={4} /> Tip oglasa
             </h2>
@@ -242,7 +242,7 @@ export default function EditListing() {
           </div>
 
           {/* 5. SPECIFIKACIJE */}
-          <div className='rounded-2xl p-6 shadow-sm' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-sm' style={sectionCard}>
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <Broj n={5} /> Specifikacije
             </h2>
@@ -298,7 +298,7 @@ export default function EditListing() {
           </div>
 
           {/* 6. CIJENA */}
-          <div className='rounded-2xl p-6 shadow-sm' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-sm' style={sectionCard}>
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <Broj n={6} /> {formData.tip === 'prodaja' ? 'Prodajna cijena' : 'Cijena iznajmljivanja'}
             </h2>
@@ -318,7 +318,7 @@ export default function EditListing() {
           </div>
 
           {/* 7. SLIKE */}
-          <div className='rounded-2xl p-6 shadow-sm' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-sm' style={sectionCard}>
             <h2 className='text-base font-semibold mb-1 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <Broj n={7} /> Fotografije
             </h2>

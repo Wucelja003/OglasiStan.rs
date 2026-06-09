@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { optimizeImg } from '../utils/img';
 
 const PLACEHOLDER = 'https://placehold.co/800x500/F2EDE3/B5AFA5?text=Nema+slike';
 
@@ -136,9 +137,10 @@ export default function Listing() {
               {images.map((img, i) => (
                 <img
                   key={i}
-                  src={img}
+                  src={optimizeImg(img, 1200)}
                   alt={`slika-${i}`}
                   draggable={false}
+                  loading={i === 0 ? 'eager' : 'lazy'}
                   className='w-full h-full object-cover flex-shrink-0 select-none'
                 />
               ))}
@@ -202,7 +204,7 @@ export default function Listing() {
                     transform: i === activeImg ? 'scale(1)' : 'scale(0.95)',
                   }}
                 >
-                  <img src={img} alt={`thumb-${i}`} className='w-full h-full object-cover' />
+                  <img src={optimizeImg(img, 150)} alt={`thumb-${i}`} loading='lazy' className='w-full h-full object-cover' />
                 </button>
               ))}
             </div>

@@ -6,6 +6,7 @@ signOutUserFailure,
 signOutUserSuccess} from '../redux/user/userSlice';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { optimizeImg } from '../utils/img';
 
 const inputClass = 'w-full px-4 py-3 rounded-xl text-sm outline-none transition-all duration-200';
 const inputStyle = { background: '#F2EDE3', border: '1px solid #DDD7CC', color: '#1A1612' };
@@ -22,7 +23,7 @@ const getInitials = (name) => {
 
 export default function Profile() {
   const { currentUser, loading, error } = useSelector(state => state.user);
-  const [FormData, setFormData] = useState({});
+  const [formData, setFormData] = useState({});
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [oglasi, setOglasi] = useState([]);
   const [oglasiLoading, setOglasiLoading] = useState(false);
@@ -60,7 +61,7 @@ export default function Profile() {
     }
   };
 
-  const handleChange = (e) => setFormData({ ...FormData, [e.target.id]: e.target.value });
+  const handleChange = (e) => setFormData({ ...formData, [e.target.id]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -70,7 +71,7 @@ export default function Profile() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(FormData),
+        body: JSON.stringify(formData),
       });
       const data = await res.json();
       if (data.success === false) { dispatch(updateUserFailure(data.message)); return; }
@@ -297,7 +298,7 @@ export default function Profile() {
                   {/* Slika */}
                   <div className='w-16 h-16 rounded-xl overflow-hidden flex-shrink-0' style={{ background: '#F2EDE3' }}>
                     {oglas.imagesUrls?.[0] ? (
-                      <img src={oglas.imagesUrls[0]} alt={oglas.name} className='w-full h-full object-cover' />
+                      <img src={optimizeImg(oglas.imagesUrls[0], 150)} alt={oglas.name} loading='lazy' className='w-full h-full object-cover' />
                     ) : (
                       <div className='w-full h-full flex items-center justify-center'>
                         <svg className='w-6 h-6' fill='none' viewBox='0 0 24 24' stroke='#DDD7CC' strokeWidth={1.5}>

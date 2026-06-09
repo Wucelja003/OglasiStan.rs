@@ -179,13 +179,13 @@ export default function CreateListing() {
 
   return (
     <div
-      className='min-h-screen px-4 py-10'
+      className='min-h-screen px-3 sm:px-4 py-6 sm:py-10'
       style={{ background: '#FAF7F2' }}
     >
       <div className='max-w-2xl mx-auto'>
         {/* Naslov */}
-        <div className='text-center mb-8'>
-          <h1 className='text-3xl font-extrabold tracking-tight' style={{ color: '#1A1612' }}>
+        <div className='text-center mb-6 sm:mb-8'>
+          <h1 className='text-2xl sm:text-3xl font-extrabold tracking-tight' style={{ color: '#1A1612' }}>
             Postavi <span style={{ color: '#E07B2A' }}>Oglas</span>
           </h1>
           <p className='mt-2 text-sm' style={{ color: '#6B6158' }}>
@@ -197,7 +197,7 @@ export default function CreateListing() {
 
           {/* 1. NAZIV */}
           <div
-            className='rounded-2xl p-6 shadow-xl'
+            className='rounded-2xl p-5 sm:p-6 shadow-xl'
             style={sectionCard}
           >
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
@@ -231,7 +231,7 @@ export default function CreateListing() {
           </div>
 
           {/* 2. LOKACIJA */}
-          <div className='rounded-2xl p-6 shadow-xl' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-xl' style={sectionCard}>
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <span
                 className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold'
@@ -261,7 +261,7 @@ export default function CreateListing() {
           </div>
 
           {/* 3. OPIS */}
-          <div className='rounded-2xl p-6 shadow-xl' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-xl' style={sectionCard}>
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <span
                 className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold'
@@ -291,7 +291,7 @@ export default function CreateListing() {
           </div>
 
           {/* 4. TIP OGLASA */}
-          <div className='rounded-2xl p-6 shadow-xl' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-xl' style={sectionCard}>
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <span
                 className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold'
@@ -321,7 +321,7 @@ export default function CreateListing() {
           </div>
 
           {/* 5. SPECIFIKACIJE */}
-          <div className='rounded-2xl p-6 shadow-xl' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-xl' style={sectionCard}>
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <span
                 className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold'
@@ -481,7 +481,7 @@ export default function CreateListing() {
           </div>
 
           {/* 6. CENA */}
-          <div className='rounded-2xl p-6 shadow-xl' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-xl' style={sectionCard}>
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <span
                 className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold'
@@ -520,7 +520,7 @@ export default function CreateListing() {
           </div>
 
           {/* 7. SLIKE */}
-          <div className='rounded-2xl p-6 shadow-xl' style={sectionCard}>
+          <div className='rounded-2xl p-5 sm:p-6 shadow-xl' style={sectionCard}>
             <h2 className='text-base font-semibold mb-1 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <span
                 className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold'

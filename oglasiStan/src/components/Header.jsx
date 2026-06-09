@@ -16,6 +16,7 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Sync search bar with URL when on search page
   useEffect(() => {
@@ -24,6 +25,9 @@ export default function Header() {
     if (term) setSearchTerm(term);
     else setSearchTerm('');
   }, [location.search]);
+
+  // Zatvori mobilni meni pri promeni stranice
+  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -96,16 +100,37 @@ export default function Header() {
           color: #fff;
         }
         .auth-btn-dark:hover { background: #E07B2A; }
-      `}</style>
-      <div className='flex justify-between items-center max-w-6xl mx-auto px-4 py-3'>
 
-        <Link to='/' className='flex items-center'>
-          <img src='/OglasiStan-FullLogo.svg' alt='OglasiStan' className='h-20' />
+        /* Mobilni meni — spuštanje */
+        @keyframes menuDown {
+          from { opacity: 0; transform: translateY(-8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .mobile-menu { animation: menuDown 0.25s ease both; }
+
+        /* Hamburger linije -> X */
+        .burger-line {
+          display: block;
+          width: 22px;
+          height: 2px;
+          background: #1A1612;
+          border-radius: 2px;
+          transition: transform 0.3s ease, opacity 0.2s ease;
+        }
+        .burger-line + .burger-line { margin-top: 5px; }
+        .burger-open .burger-line:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .burger-open .burger-line:nth-child(2) { opacity: 0; }
+        .burger-open .burger-line:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+      `}</style>
+      <div className='flex justify-between items-center max-w-6xl mx-auto px-4 py-3 gap-2 sm:gap-4'>
+
+        <Link to='/' className='flex items-center flex-shrink-0'>
+          <img src='/OglasiStan-FullLogo.svg' alt='OglasiStan' className='h-12 sm:h-20' />
         </Link>
 
         <form
           onSubmit={handleSubmit}
-          className='flex items-center rounded-full px-4 py-2 gap-2 transition-colors'
+          className='flex items-center rounded-full px-3 sm:px-4 py-2 gap-2 transition-colors flex-1 min-w-0 max-w-xs sm:max-w-none sm:flex-none'
           style={{ background: '#F2EDE3', border: '1px solid #DDD7CC' }}
         >
           <input
@@ -113,7 +138,7 @@ export default function Header() {
             placeholder='Pretražite ponude...'
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className='bg-transparent focus:outline-none text-sm w-40 sm:w-64'
+            className='bg-transparent focus:outline-none text-sm w-full sm:w-64'
             style={{ color: '#1A1612' }}
           />
           <button type='submit'>
@@ -121,9 +146,10 @@ export default function Header() {
           </button>
         </form>
 
-        <nav>
+        {/* Desktop navigacija */}
+        <nav className='hidden sm:block'>
           <ul className='flex items-center gap-1'>
-            <li className='hidden sm:inline'>
+            <li>
               <Link
                 to='/'
                 className='px-3 py-2 rounded-lg text-sm font-medium transition-colors'
@@ -134,7 +160,7 @@ export default function Header() {
                 Početna
               </Link>
             </li>
-            <li className='hidden sm:inline'>
+            <li>
               <Link
                 to='/about'
                 className='px-3 py-2 rounded-lg text-sm font-medium transition-colors'
@@ -169,7 +195,67 @@ export default function Header() {
           </ul>
         </nav>
 
+        {/* Mobilni: avatar (ako je ulogovan) + hamburger */}
+        <div className='flex sm:hidden items-center gap-2 flex-shrink-0'>
+          {currentUser && (
+            <Link to='/profile'>
+              <div
+                className='w-9 h-9 rounded-full flex items-center justify-center select-none'
+                style={{ border: '2px solid #E07B2A', background: 'linear-gradient(135deg, #E07B2A 0%, #C45F12 100%)' }}
+              >
+                <span className='text-xs font-extrabold text-white tracking-wide'>{getInitials(currentUser.username)}</span>
+              </div>
+            </Link>
+          )}
+          <button
+            type='button'
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label='Otvori meni'
+            aria-expanded={menuOpen}
+            className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center ${menuOpen ? 'burger-open' : ''}`}
+            style={{ background: '#F2EDE3', border: '1px solid #DDD7CC' }}
+          >
+            <span className='burger-line' />
+            <span className='burger-line' />
+            <span className='burger-line' />
+          </button>
+        </div>
+
       </div>
+
+      {/* Mobilni dropdown meni */}
+      {menuOpen && (
+        <div className='mobile-menu sm:hidden' style={{ borderTop: '1px solid #DDD7CC', background: '#FDF9F4' }}>
+          <ul className='flex flex-col px-4 py-3 gap-1'>
+            <li>
+              <Link to='/' className='block px-3 py-2.5 rounded-lg text-sm font-medium' style={{ color: '#6B6158' }}>
+                Početna
+              </Link>
+            </li>
+            <li>
+              <Link to='/about' className='block px-3 py-2.5 rounded-lg text-sm font-medium' style={{ color: '#6B6158' }}>
+                O nama
+              </Link>
+            </li>
+            {currentUser ? (
+              <li>
+                <Link to='/profile' className='block px-3 py-2.5 rounded-lg text-sm font-medium' style={{ color: '#6B6158' }}>
+                  Moj profil
+                </Link>
+              </li>
+            ) : (
+              <li className='flex flex-col gap-2 pt-2'>
+                <Link to='/sign-in' className='auth-btn auth-btn-orange justify-center'>
+                  Prijavi se
+                </Link>
+                <Link to='/sign-up' className='auth-btn auth-btn-dark justify-center'>
+                  Registruj se
+                </Link>
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
     </header>
   )
 }
