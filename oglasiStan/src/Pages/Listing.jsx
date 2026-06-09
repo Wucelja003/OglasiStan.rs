@@ -308,7 +308,7 @@ export default function Listing() {
 
                 {sendStatus === 'success' && (
                   <p className='text-xs mt-2 text-center font-medium' style={{ color: '#2E7D32' }}>
-                    Poruka je uspješno poslata!
+                    Poruka je uspešno poslata!
                   </p>
                 )}
                 {sendStatus === 'error' && (
