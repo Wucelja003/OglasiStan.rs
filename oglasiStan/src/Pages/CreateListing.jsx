@@ -62,10 +62,12 @@ export default function CreateListing() {
     opis: '',
     tip: 'prodaja',
     kvadratura: '',
+    sprat: '',
     sobe: '',
     kupatila: '',
     namesten: false,
     parking: false,
+    terasa: false,
     grejanje: '',
     cena: '',
   });
@@ -116,10 +118,12 @@ export default function CreateListing() {
         address: formData.lokacija,
         type: formData.tip,
         area: Number(formData.kvadratura),
+        floor: Number(formData.sprat) || 0,
         bedrooms: Number(formData.sobe),
         bathrooms: Number(formData.kupatila),
         furnished: formData.namesten,
         parking: formData.parking,
+        terrace: formData.terasa,
         regularPrice: Number(formData.cena),
         discountPrice: 0,
         offer: false,
@@ -328,7 +332,7 @@ export default function CreateListing() {
               Specifikacije
             </h2>
 
-            <div className='grid grid-cols-3 gap-4 mb-4'>
+            <div className='grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4'>
               {/* Kvadratura */}
               <div>
                 <label className={labelClass} style={labelStyle} htmlFor='kvadratura'>
@@ -342,6 +346,25 @@ export default function CreateListing() {
                   onChange={handleChange}
                   min={1}
                   required
+                  className={inputClass}
+                  style={inputStyle}
+                  onFocus={(e) => Object.assign(e.target.style, focusStyle)}
+                  onBlur={(e) => Object.assign(e.target.style, blurStyle)}
+                />
+              </div>
+
+              {/* Sprat */}
+              <div>
+                <label className={labelClass} style={labelStyle} htmlFor='sprat'>
+                  Sprat
+                </label>
+                <input
+                  type='number'
+                  id='sprat'
+                  placeholder='npr. 3 (0 = prizemlje)'
+                  value={formData.sprat}
+                  onChange={handleChange}
+                  min={0}
                   className={inputClass}
                   style={inputStyle}
                   onFocus={(e) => Object.assign(e.target.style, focusStyle)}
@@ -391,10 +414,11 @@ export default function CreateListing() {
             </div>
 
             {/* Checkboxes */}
-            <div className='grid grid-cols-2 gap-3 mb-4'>
+            <div className='grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4'>
               {[
                 { id: 'namesten', label: 'Namešten' },
                 { id: 'parking', label: 'Parking mesto' },
+                { id: 'terasa', label: 'Terasa' },
               ].map(({ id, label }) => (
                 <label
                   key={id}

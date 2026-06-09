@@ -21,8 +21,8 @@ export default function EditListing() {
 
   const [formData, setFormData] = useState({
     naziv: '', lokacija: '', opis: '', tip: 'prodaja',
-    kvadratura: '', sobe: '', kupatila: '',
-    namesten: false, parking: false, grejanje: '', cena: '',
+    kvadratura: '', sprat: '', sobe: '', kupatila: '',
+    namesten: false, parking: false, terasa: false, grejanje: '', cena: '',
   });
 
   // Učitaj postojeći oglas
@@ -42,10 +42,12 @@ export default function EditListing() {
         opis: data.description || '',
         tip: data.type || 'prodaja',
         kvadratura: data.area || '',
+        sprat: data.floor ?? '',
         sobe: data.bedrooms || '',
         kupatila: data.bathrooms || '',
         namesten: data.furnished || false,
         parking: data.parking || false,
+        terasa: data.terrace || false,
         grejanje: '',
         cena: data.regularPrice || '',
       });
@@ -122,10 +124,12 @@ export default function EditListing() {
         address: formData.lokacija,
         type: formData.tip,
         area: Number(formData.kvadratura),
+        floor: Number(formData.sprat) || 0,
         bedrooms: Number(formData.sobe),
         bathrooms: Number(formData.kupatila),
         furnished: formData.namesten,
         parking: formData.parking,
+        terrace: formData.terasa,
         regularPrice: Number(formData.cena),
         discountPrice: 0,
         offer: false,
@@ -242,16 +246,17 @@ export default function EditListing() {
             <h2 className='text-base font-semibold mb-4 flex items-center gap-2' style={{ color: '#1A1612' }}>
               <Broj n={5} /> Specifikacije
             </h2>
-            <div className='grid grid-cols-3 gap-4 mb-4'>
+            <div className='grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4'>
               {[
-                { id: 'kvadratura', label: 'Kvadratura (m²)', placeholder: 'npr. 65' },
-                { id: 'sobe', label: 'Broj soba', placeholder: 'npr. 3' },
-                { id: 'kupatila', label: 'Kupatila', placeholder: 'npr. 1' },
-              ].map(({ id: fid, label, placeholder }) => (
+                { id: 'kvadratura', label: 'Kvadratura (m²)', placeholder: 'npr. 65', min: 1 },
+                { id: 'sprat', label: 'Sprat', placeholder: 'npr. 3 (0 = prizemlje)', min: 0 },
+                { id: 'sobe', label: 'Broj soba', placeholder: 'npr. 3', min: 1 },
+                { id: 'kupatila', label: 'Kupatila', placeholder: 'npr. 1', min: 1 },
+              ].map(({ id: fid, label, placeholder, min }) => (
                 <div key={fid}>
                   <label className={labelClass} style={labelStyle} htmlFor={fid}>{label}</label>
                   <input type='number' id={fid} value={formData[fid]} onChange={handleChange}
-                    placeholder={placeholder} min={1}
+                    placeholder={placeholder} min={min}
                     className={inputClass} style={inputStyle}
                     onFocus={e => Object.assign(e.target.style, focusStyle)}
                     onBlur={e => Object.assign(e.target.style, blurStyle)} />
@@ -259,8 +264,8 @@ export default function EditListing() {
               ))}
             </div>
 
-            <div className='grid grid-cols-2 gap-3 mb-4'>
-              {[{ id: 'namesten', label: 'Namešten' }, { id: 'parking', label: 'Parking mesto' }].map(({ id: cid, label }) => (
+            <div className='grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4'>
+              {[{ id: 'namesten', label: 'Namešten' }, { id: 'parking', label: 'Parking mesto' }, { id: 'terasa', label: 'Terasa' }].map(({ id: cid, label }) => (
                 <label key={cid} htmlFor={cid} className='flex items-center gap-3 rounded-xl px-4 py-3 cursor-pointer transition-all duration-200'
                   style={{ background: formData[cid] ? 'rgba(224,123,42,0.1)' : '#F2EDE3', border: formData[cid] ? '1px solid rgba(224,123,42,0.5)' : '1px solid #DDD7CC' }}>
                   <div className='w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all duration-200'

@@ -33,6 +33,11 @@ export default function Profile() {
       setOglasiLoading(true);
       try {
         const res = await fetch(`/api/listing/user/${currentUser._id}`, { credentials: 'include' });
+        // Token istekao / nema cookie-ja -> odjavi korisnika umesto tihog praznog profila
+        if (res.status === 401 || res.status === 403) {
+          dispatch(signOutUserSuccess());
+          return;
+        }
         const data = await res.json();
         setOglasi(Array.isArray(data) ? data : []);
       } catch {
@@ -309,6 +314,11 @@ export default function Profile() {
                       {oglas.regularPrice.toLocaleString('sr-RS')} €
                       {oglas.type === 'izdavanje' && ' /mj'}
                     </p>
+                    {oglas.area > 0 && (
+                      <p className='text-xs mt-0.5 font-semibold' style={{ color: '#E07B2A' }}>
+                        {Math.round(oglas.regularPrice / oglas.area).toLocaleString('sr-RS')} €/m²
+                      </p>
+                    )}
                   </div>
 
                   {/* Akcije */}

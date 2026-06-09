@@ -28,6 +28,16 @@ const listingSchema = new mongoose.Schema(
             required: false,
             default: 0,
         },
+        floor: {
+            type: Number,
+            required: false,
+            default: 0,
+        },
+        terrace: {
+            type: Boolean,
+            required: false,
+            default: false,
+        },
         bathrooms: {
             type: Number,
             required: true

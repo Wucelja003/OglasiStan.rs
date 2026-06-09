@@ -15,5 +15,9 @@ export const getCookieOptions = () => {
     httpOnly: true,
     secure: isProd,
     sameSite: isProd ? 'none' : 'lax',
+    // Trajanje cookie-ja: 7 dana. Bez ovoga je "session cookie" koji browser
+    // obriše čim zatvoriš prozor -> token nestane, a redux-persist i dalje misli
+    // da si ulogovan, pa zaštićeni pozivi (npr. moji oglasi) vraćaju 401.
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   };
 };

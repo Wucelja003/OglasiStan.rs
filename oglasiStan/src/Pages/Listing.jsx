@@ -23,6 +23,33 @@ export default function Listing() {
   const [error, setError] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
   const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sendStatus, setSendStatus] = useState(null); // 'success' | 'error' | null
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || sending) return;
+    try {
+      setSending(true);
+      setSendStatus(null);
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ listingId: listing._id, message }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        setSendStatus('error');
+      } else {
+        setSendStatus('success');
+        setMessage('');
+      }
+    } catch {
+      setSendStatus('error');
+    } finally {
+      setSending(false);
+    }
+  };
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -96,18 +123,32 @@ export default function Listing() {
         {/* ── GALERIJA ── */}
         <div className='rounded-2xl overflow-hidden mb-6 shadow-md' style={{ border: '1px solid #DDD7CC' }}>
           {/* Glavna slika */}
-          <div className='relative' style={{ aspectRatio: '16/9', background: '#F2EDE3' }}>
-            <img
-              src={images[activeImg]}
-              alt={`slika-${activeImg}`}
-              className='w-full h-full object-cover'
-            />
+          <div className='relative overflow-hidden' style={{ aspectRatio: '16/9', background: '#F2EDE3' }}>
+            {/* Slajd traka — sve slike u redu, klizi se translacijom */}
+            <div
+              className='flex h-full'
+              style={{
+                transform: `translateX(-${activeImg * 100}%)`,
+                transition: 'transform 0.55s cubic-bezier(0.65, 0, 0.35, 1)',
+                willChange: 'transform',
+              }}
+            >
+              {images.map((img, i) => (
+                <img
+                  key={i}
+                  src={img}
+                  alt={`slika-${i}`}
+                  draggable={false}
+                  className='w-full h-full object-cover flex-shrink-0 select-none'
+                />
+              ))}
+            </div>
 
             {images.length > 1 && (
               <>
                 <button
                   onClick={prevImg}
-                  className='absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-150'
+                  className='absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-110 active:scale-95'
                   style={{ background: 'rgba(253,249,244,0.92)' }}
                 >
                   <svg className='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='#1A1612' strokeWidth={2.5}>
@@ -116,7 +157,7 @@ export default function Listing() {
                 </button>
                 <button
                   onClick={nextImg}
-                  className='absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-150'
+                  className='absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-110 active:scale-95'
                   style={{ background: 'rgba(253,249,244,0.92)' }}
                 >
                   <svg className='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='#1A1612' strokeWidth={2.5}>
@@ -125,6 +166,22 @@ export default function Listing() {
                 </button>
                 <div className='absolute bottom-3 right-3 text-xs font-semibold px-2 py-1 rounded-lg' style={{ background: 'rgba(26,22,18,0.6)', color: 'white' }}>
                   {activeImg + 1} / {images.length}
+                </div>
+
+                {/* Tačkice (dots) indikator */}
+                <div className='absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5'>
+                  {images.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveImg(i)}
+                      className='rounded-full transition-all duration-300'
+                      style={{
+                        height: 6,
+                        width: i === activeImg ? 18 : 6,
+                        background: i === activeImg ? '#E07B2A' : 'rgba(253,249,244,0.7)',
+                      }}
+                    />
+                  ))}
                 </div>
               </>
             )}
@@ -137,11 +194,12 @@ export default function Listing() {
                 <button
                   key={i}
                   onClick={() => setActiveImg(i)}
-                  className='flex-shrink-0 rounded-xl overflow-hidden transition-all duration-150'
+                  className='flex-shrink-0 rounded-xl overflow-hidden transition-all duration-300 hover:opacity-100'
                   style={{
                     width: 72, height: 52,
                     outline: i === activeImg ? '2.5px solid #E07B2A' : '2px solid transparent',
-                    opacity: i === activeImg ? 1 : 0.6,
+                    opacity: i === activeImg ? 1 : 0.55,
+                    transform: i === activeImg ? 'scale(1)' : 'scale(0.95)',
                   }}
                 >
                   <img src={img} alt={`thumb-${i}`} className='w-full h-full object-cover' />
@@ -162,8 +220,11 @@ export default function Listing() {
               <div className='flex flex-col gap-3'>
                 {[
                   ...(listing.area ? [{ label: 'Kvadratura', value: `${listing.area} m²` }] : []),
+                  ...(listing.area ? [{ label: 'Cena po m²', value: `${Math.round(listing.regularPrice / listing.area).toLocaleString('sr-RS')} €` }] : []),
+                  { label: 'Sprat', value: listing.floor ? listing.floor : 'Prizemlje' },
                   { label: 'Broj soba', value: listing.bedrooms },
                   { label: 'Broj kupatila', value: listing.bathrooms },
+                  { label: 'Terasa', value: listing.terrace ? 'Da' : 'Ne' },
                   { label: 'Parking', value: listing.parking ? 'Da' : 'Ne' },
                   { label: 'Namešten', value: listing.furnished ? 'Da' : 'Ne' },
                 ].map(({ label, value }) => (
@@ -230,18 +291,31 @@ export default function Listing() {
                   onBlur={e => { e.target.style.border = '1px solid #DDD7CC'; e.target.style.boxShadow = 'none'; }}
                 />
 
-                <a
-                  href={`mailto:${landlord.email}?subject=Upit za oglas: ${listing.name}&body=${encodeURIComponent(message)}`}
+                <button
+                  type='button'
+                  onClick={handleSendMessage}
+                  disabled={!message.trim() || sending}
                   className='w-full py-2.5 rounded-xl text-sm font-semibold text-white text-center transition-all duration-200 block'
                   style={{
-                    background: message.trim() ? '#E07B2A' : '#DDD7CC',
-                    pointerEvents: message.trim() ? 'auto' : 'none',
+                    background: message.trim() && !sending ? '#E07B2A' : '#DDD7CC',
+                    cursor: message.trim() && !sending ? 'pointer' : 'not-allowed',
                   }}
-                  onMouseEnter={e => { if (message.trim()) e.currentTarget.style.background = '#C45F12'; }}
-                  onMouseLeave={e => { if (message.trim()) e.currentTarget.style.background = '#E07B2A'; }}
+                  onMouseEnter={e => { if (message.trim() && !sending) e.currentTarget.style.background = '#C45F12'; }}
+                  onMouseLeave={e => { if (message.trim() && !sending) e.currentTarget.style.background = '#E07B2A'; }}
                 >
-                  Pošalji poruku
-                </a>
+                  {sending ? 'Slanje...' : 'Pošalji poruku'}
+                </button>
+
+                {sendStatus === 'success' && (
+                  <p className='text-xs mt-2 text-center font-medium' style={{ color: '#2E7D32' }}>
+                    Poruka je uspješno poslata!
+                  </p>
+                )}
+                {sendStatus === 'error' && (
+                  <p className='text-xs mt-2 text-center font-medium' style={{ color: '#C0392B' }}>
+                    Greška pri slanju. Pokušajte ponovo.
+                  </p>
+                )}
               </div>
             )}
 
