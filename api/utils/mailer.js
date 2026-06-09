@@ -1,35 +1,37 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-let transporter = null;
+let resend = null;
 
-const getTransporter = () => {
-  if (transporter) return transporter;
+const getResend = () => {
+  if (resend) return resend;
 
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  if (!process.env.RESEND_API_KEY) {
     throw new Error(
-      'Email nije konfigurisan. Postavi EMAIL_USER i EMAIL_PASS u .env (Gmail app password).'
+      'Email nije konfigurisan. Postavi RESEND_API_KEY u .env.'
     );
   }
 
-  transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  return transporter;
+  resend = new Resend(process.env.RESEND_API_KEY);
+  return resend;
 };
 
 export const sendMail = async ({ to, replyTo, subject, text, html }) => {
-  const t = getTransporter();
-  return t.sendMail({
-    from: `"OglasiStan" <${process.env.EMAIL_USER}>`,
+  const client = getResend();
+  // EMAIL_FROM mora biti adresa na verifikovanom domenu, npr. "OglasiStan <noreply@oglasistan.com>"
+  const from = process.env.EMAIL_FROM || 'OglasiStan <noreply@oglasistan.com>';
+
+  const { data, error } = await client.emails.send({
+    from,
     to,
     replyTo,
     subject,
     text,
     html,
   });
+
+  if (error) {
+    throw new Error(error.message || 'Greška pri slanju mejla.');
+  }
+
+  return data;
 };
