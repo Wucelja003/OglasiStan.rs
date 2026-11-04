@@ -1,261 +1,193 @@
-import { FaSearch } from 'react-icons/fa'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useState, useEffect } from 'react';
+import { LuSearch, LuPlus, LuArrowUpRight } from 'react-icons/lu';
+import Logo from './Logo';
+import { getInitials } from '../utils/format';
 
-// Inicijali iz korisničkog imena (npr. "Marko Petrović" -> "MP", "marko" -> "MA")
-const getInitials = (name) => {
-  if (!name) return 'U';
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return parts[0].slice(0, 2).toUpperCase();
-};
+const NAV = [
+  { to: '/', label: 'Home', end: true },
+  { to: '/search', label: 'Browse' },
+  { to: '/search?type=izdavanje', label: 'Rentals' },
+  { to: '/about', label: 'About' },
+];
 
 export default function Header() {
-  const { currentUser } = useSelector(state => state.user);
+  const { currentUser } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  // Sync search bar with URL when on search page
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const term = params.get('searchTerm');
-    if (term) setSearchTerm(term);
-    else setSearchTerm('');
+    const term = new URLSearchParams(location.search).get('searchTerm');
+    setSearchTerm(term || '');
   }, [location.search]);
 
-  // Zatvori mobilni meni pri promeni stranice
-  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
+  useEffect(() => { setMenuOpen(false); }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Zaključaj skrol dok je mobilni meni otvoren
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const params = new URLSearchParams(location.search);
-    params.set('searchTerm', searchTerm);
+    const params = new URLSearchParams(location.pathname === '/search' ? location.search : '');
+    if (searchTerm.trim()) params.set('searchTerm', searchTerm.trim());
+    else params.delete('searchTerm');
     navigate(`/search?${params.toString()}`);
   };
 
+  const isActive = (item) => {
+    const [path, query] = item.to.split('?');
+    if (item.end) return location.pathname === path;
+    if (location.pathname !== path) return false;
+    if (query) return location.search.includes(query);
+    return !location.search.includes('type=izdavanje');
+  };
+
   return (
-    <header
-      className='shadow-sm'
-      style={{
-        background: '#FDF9F4',
-        borderBottom: '1px solid #DDD7CC',
-        animation: 'slideDown 2s cubic-bezier(0.16, 1, 0.3, 1) both',
-      }}
-    >
-      <style>{`
-        @keyframes slideDown {
-          from { transform: translateY(-100%); opacity: 0; }
-          to   { transform: translateY(0);     opacity: 1; }
-        }
+    <>
+      <header
+        className={`sticky top-0 z-50 transition-all duration-500 ${
+          scrolled || menuOpen
+            ? 'border-b border-line bg-cream/90 backdrop-blur-xl'
+            : 'border-b border-transparent bg-transparent'
+        }`}
+      >
+        <div className='container-x flex h-24 items-center gap-4'>
+          <Logo className='h-[72px] sm:h-20' />
 
-        /* Ulazna animacija grupe dugmadi */
-        @keyframes authIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .auth-actions { animation: authIn 0.6s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
-
-        /* Bazni stil dugmadi + shine-sweep efekat */
-        .auth-btn {
-          position: relative;
-          overflow: hidden;
-          display: inline-flex;
-          align-items: center;
-          border-radius: 0.6rem;
-          padding: 0.55rem 1.1rem;
-          font-size: 0.875rem;
-          font-weight: 600;
-          white-space: nowrap;
-          transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-        }
-        .auth-btn::before {
-          content: '';
-          position: absolute;
-          top: 0; left: -130%;
-          width: 70%; height: 100%;
-          background: linear-gradient(120deg, transparent, rgba(255,255,255,0.5), transparent);
-          transform: skewX(-20deg);
-          transition: left 0.6s ease;
-        }
-        .auth-btn:hover::before { left: 140%; }
-        .auth-btn:hover { transform: translateY(-2px); }
-
-        /* Narandžasto "Prijavi se" sa suptilnim glow pulsom */
-        .auth-btn-orange {
-          background: #E07B2A;
-          color: #fff;
-          animation: glowPulse 2.6s ease-in-out infinite;
-        }
-        @keyframes glowPulse {
-          0%, 100% { box-shadow: 0 4px 14px rgba(224,123,42,0.35); }
-          50%      { box-shadow: 0 6px 22px rgba(224,123,42,0.6); }
-        }
-
-        /* Tamno "Registruj se" */
-        .auth-btn-dark {
-          background: #221E1A;
-          color: #fff;
-        }
-        .auth-btn-dark:hover { background: #E07B2A; }
-
-        /* Mobilni meni — spuštanje */
-        @keyframes menuDown {
-          from { opacity: 0; transform: translateY(-8px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .mobile-menu { animation: menuDown 0.25s ease both; }
-
-        /* Hamburger linije -> X */
-        .burger-line {
-          display: block;
-          width: 22px;
-          height: 2px;
-          background: #1A1612;
-          border-radius: 2px;
-          transition: transform 0.3s ease, opacity 0.2s ease;
-        }
-        .burger-line + .burger-line { margin-top: 5px; }
-        .burger-open .burger-line:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-        .burger-open .burger-line:nth-child(2) { opacity: 0; }
-        .burger-open .burger-line:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-      `}</style>
-      <div className='flex justify-between items-center max-w-6xl mx-auto px-4 py-3 gap-2 sm:gap-4'>
-
-        <Link to='/' className='flex items-center flex-shrink-0'>
-          <img src='/OglasiStan-FullLogo.svg' alt='OglasiStan' className='h-12 sm:h-20' />
-        </Link>
-
-        <form
-          onSubmit={handleSubmit}
-          className='flex items-center rounded-full px-3 sm:px-4 py-2 gap-2 transition-colors flex-1 min-w-0 max-w-xs sm:max-w-none sm:flex-none'
-          style={{ background: '#F2EDE3', border: '1px solid #DDD7CC' }}
-        >
-          <input
-            type='text'
-            placeholder='Pretražite ponude...'
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className='bg-transparent focus:outline-none text-sm w-full sm:w-64'
-            style={{ color: '#1A1612' }}
-          />
-          <button type='submit'>
-            <FaSearch style={{ color: '#B5AFA5' }} className='text-sm flex-shrink-0' />
-          </button>
-        </form>
-
-        {/* Desktop navigacija */}
-        <nav className='hidden sm:block'>
-          <ul className='flex items-center gap-1'>
-            <li>
-              <Link
-                to='/'
-                className='px-3 py-2 rounded-lg text-sm font-medium transition-colors'
-                style={{ color: '#6B6158' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#E07B2A'}
-                onMouseLeave={e => e.currentTarget.style.color = '#6B6158'}
+          {/* Desktop nav — "pilula" */}
+          <nav className='ml-4 hidden items-center gap-0.5 rounded-full border border-line bg-card/80 p-1 shadow-sm lg:flex'>
+            {NAV.map((item) => (
+              <NavLink
+                key={item.label}
+                to={item.to}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 ${
+                  isActive(item) ? 'bg-espresso text-white shadow' : 'text-muted hover:bg-sand hover:text-ink'
+                }`}
               >
-                Početna
-              </Link>
-            </li>
-            <li>
-              <Link
-                to='/about'
-                className='px-3 py-2 rounded-lg text-sm font-medium transition-colors'
-                style={{ color: '#6B6158' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#E07B2A'}
-                onMouseLeave={e => e.currentTarget.style.color = '#6B6158'}
-              >
-                O nama
-              </Link>
-            </li>
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className='ml-auto flex items-center gap-2'>
+            {/* Desktop search */}
+            <form
+              onSubmit={handleSubmit}
+              className='group hidden items-center gap-2 rounded-full border border-line bg-card/80 px-4 py-2.5 transition-all focus-within:border-accent focus-within:bg-white xl:flex'
+            >
+              <LuSearch className='h-4 w-4 text-dim transition-colors group-focus-within:text-accent' />
+              <input
+                type='text'
+                placeholder='Search city, street…'
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className='w-40 bg-transparent text-sm text-ink outline-none placeholder:text-dim xl:w-56'
+              />
+              <kbd className='hidden rounded border border-line px-1.5 font-sans text-[10px] text-dim xl:block'>↵</kbd>
+            </form>
+
             {currentUser ? (
-              <li>
-                <Link to='/profile'>
-                  <div
-                    className='w-9 h-9 rounded-full flex items-center justify-center select-none'
-                    style={{ border: '2px solid #E07B2A', background: 'linear-gradient(135deg, #E07B2A 0%, #C45F12 100%)' }}
-                  >
-                    <span className='text-xs font-extrabold text-white tracking-wide'>{getInitials(currentUser.username)}</span>
-                  </div>
+              <>
+                <Link to='/create-listing' className='btn-primary hidden !px-4 !py-2.5 sm:inline-flex'>
+                  <LuPlus className='h-4 w-4' /> Post listing
                 </Link>
-              </li>
+                <Link
+                  to='/profile'
+                  aria-label='Your profile'
+                  className='grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-accent to-accent-deep font-display text-xs font-bold text-white ring-2 ring-line transition-transform hover:scale-105 hover:ring-accent/50'
+                >
+                  {getInitials(currentUser.username)}
+                </Link>
+              </>
             ) : (
-              <li className='auth-actions flex items-center gap-2'>
-                <Link to='/sign-in' className='auth-btn auth-btn-orange'>
-                  Prijavi se
+              <>
+                <Link to='/sign-in' className='btn-primary hidden !px-5 !py-2.5 sm:inline-flex'>
+                  Sign in
                 </Link>
-                <Link to='/sign-up' className='auth-btn auth-btn-dark'>
-                  Registruj se
+                <Link to='/sign-up' className='btn-dark hidden !px-5 !py-2.5 sm:inline-flex'>
+                  Sign up <LuArrowUpRight className='h-4 w-4' />
                 </Link>
-              </li>
+              </>
             )}
-          </ul>
-        </nav>
 
-        {/* Mobilni: avatar (ako je ulogovan) + hamburger */}
-        <div className='flex sm:hidden items-center gap-2 flex-shrink-0'>
-          {currentUser && (
-            <Link to='/profile'>
-              <div
-                className='w-9 h-9 rounded-full flex items-center justify-center select-none'
-                style={{ border: '2px solid #E07B2A', background: 'linear-gradient(135deg, #E07B2A 0%, #C45F12 100%)' }}
-              >
-                <span className='text-xs font-extrabold text-white tracking-wide'>{getInitials(currentUser.username)}</span>
-              </div>
-            </Link>
-          )}
-          <button
-            type='button'
-            onClick={() => setMenuOpen(o => !o)}
-            aria-label='Otvori meni'
-            aria-expanded={menuOpen}
-            className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center ${menuOpen ? 'burger-open' : ''}`}
-            style={{ background: '#F2EDE3', border: '1px solid #DDD7CC' }}
-          >
-            <span className='burger-line' />
-            <span className='burger-line' />
-            <span className='burger-line' />
-          </button>
+            {/* Hamburger (mobilni) */}
+            <button
+              type='button'
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+              className='relative grid h-11 w-11 place-items-center rounded-full border border-line bg-card lg:hidden'
+            >
+              <span className={`absolute h-[1.5px] w-5 bg-espresso transition-all duration-300 ${menuOpen ? 'rotate-45' : '-translate-y-[5px]'}`} />
+              <span className={`absolute h-[1.5px] w-5 bg-espresso transition-all duration-300 ${menuOpen ? '-rotate-45' : 'translate-y-[5px]'}`} />
+            </button>
+          </div>
         </div>
+      </header>
 
+      {/* Mobilni meni — preko celog ekrana */}
+      <div
+        className={`fixed inset-0 z-40 bg-cream transition-all duration-500 lg:hidden ${
+          menuOpen ? 'visible opacity-100' : 'invisible opacity-0'
+        }`}
+      >
+        <div className='pointer-events-none absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-accent/15 blur-[90px]' />
+        <div className='container-x relative flex h-full flex-col pb-8 pt-32'>
+          <form onSubmit={handleSubmit} className='mb-8 flex items-center gap-3 rounded-full border border-line bg-card px-5 py-3.5'>
+            <LuSearch className='h-5 w-5 text-accent' />
+            <input
+              type='text'
+              placeholder='Search city, street…'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className='w-full bg-transparent text-base text-ink outline-none placeholder:text-dim'
+            />
+          </form>
+
+          <nav className='flex flex-col'>
+            {[...NAV, ...(currentUser ? [{ to: '/profile', label: 'Profile' }] : [])].map((item, i) => (
+              <Link
+                key={item.label}
+                to={item.to}
+                style={{ transitionDelay: menuOpen ? `${80 + i * 60}ms` : '0ms' }}
+                className={`group flex items-center justify-between border-b border-line py-4 font-display text-4xl font-bold tracking-tight transition-all duration-500 ${
+                  menuOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                } ${isActive(item) ? 'text-accent' : 'text-ink'}`}
+              >
+                {item.label}
+                <LuArrowUpRight className='h-6 w-6 text-dim transition-all group-hover:rotate-45 group-hover:text-accent' />
+              </Link>
+            ))}
+          </nav>
+
+          <div className='mt-auto flex flex-col gap-3'>
+            {currentUser ? (
+              <Link to='/create-listing' className='btn-primary w-full !py-4 text-base'>
+                <LuPlus className='h-5 w-5' /> Post a listing
+              </Link>
+            ) : (
+              <>
+                <Link to='/sign-up' className='btn-primary w-full !py-4 text-base'>Get started — it's free</Link>
+                <Link to='/sign-in' className='btn-ghost w-full !py-4 text-base'>Sign in</Link>
+              </>
+            )}
+          </div>
+        </div>
       </div>
-
-      {/* Mobilni dropdown meni */}
-      {menuOpen && (
-        <div className='mobile-menu sm:hidden' style={{ borderTop: '1px solid #DDD7CC', background: '#FDF9F4' }}>
-          <ul className='flex flex-col px-4 py-3 gap-1'>
-            <li>
-              <Link to='/' className='block px-3 py-2.5 rounded-lg text-sm font-medium' style={{ color: '#6B6158' }}>
-                Početna
-              </Link>
-            </li>
-            <li>
-              <Link to='/about' className='block px-3 py-2.5 rounded-lg text-sm font-medium' style={{ color: '#6B6158' }}>
-                O nama
-              </Link>
-            </li>
-            {currentUser ? (
-              <li>
-                <Link to='/profile' className='block px-3 py-2.5 rounded-lg text-sm font-medium' style={{ color: '#6B6158' }}>
-                  Moj profil
-                </Link>
-              </li>
-            ) : (
-              <li className='flex flex-col gap-2 pt-2'>
-                <Link to='/sign-in' className='auth-btn auth-btn-orange justify-center'>
-                  Prijavi se
-                </Link>
-                <Link to='/sign-up' className='auth-btn auth-btn-dark justify-center'>
-                  Registruj se
-                </Link>
-              </li>
-            )}
-          </ul>
-        </div>
-      )}
-    </header>
-  )
+    </>
+  );
 }

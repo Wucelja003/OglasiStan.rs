@@ -1,16 +1,130 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import {
+  LuArrowLeft, LuChevronLeft, LuChevronRight, LuMapPin, LuRuler, LuBedDouble, LuBath, LuBuilding2,
+  LuCalculator, LuCheck, LuX, LuSend, LuPencil, LuLink, LuHouse, LuFlame, LuLogIn,
+} from 'react-icons/lu';
 import { optimizeImg } from '../utils/img';
+import { formatPrice, pricePerM2, typeLabel, isRent, floorLabel, getInitials } from '../utils/format';
 
-const PLACEHOLDER = 'https://placehold.co/800x500/F2EDE3/B5AFA5?text=Nema+slike';
+const QUICK_MESSAGES = ['Is it still available?', 'Can I book a viewing?', 'Is the price negotiable?'];
 
-function IconPin() {
+function Gallery({ images, name }) {
+  const [active, setActive] = useState(0);
+  const touchX = useRef(null);
+  const count = images.length;
+
+  const go = (dir) => setActive((i) => (i + dir + count) % count);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (count < 2) return;
+      if (e.key === 'ArrowLeft') go(-1);
+      if (e.key === 'ArrowRight') go(1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [count]);
+
+  if (count === 0) {
+    return (
+      <div className='bg-grid grid aspect-[16/9] place-items-center rounded-3xl border border-line bg-card'>
+        <LuHouse className='h-14 w-14 text-ink/10' />
+      </div>
+    );
+  }
+
   return (
-    <svg className='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
-      <path strokeLinecap='round' strokeLinejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0z' />
-      <path strokeLinecap='round' strokeLinejoin='round' d='M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' />
-    </svg>
+    <div>
+      <div
+        className='group relative aspect-[4/3] overflow-hidden rounded-3xl border border-line bg-card sm:aspect-[16/9]'
+        onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }}
+        onTouchEnd={(e) => {
+          if (touchX.current === null) return;
+          const dx = e.changedTouches[0].clientX - touchX.current;
+          if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+          touchX.current = null;
+        }}
+      >
+        <div
+          className='flex h-full'
+          style={{ transform: `translateX(-${active * 100}%)`, transition: 'transform 0.7s cubic-bezier(0.65, 0, 0.35, 1)', willChange: 'transform' }}
+        >
+          {images.map((img, i) => (
+            <img
+              key={i}
+              src={optimizeImg(img, 1400)}
+              alt={`${name} — photo ${i + 1}`}
+              draggable={false}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              className='h-full w-full shrink-0 select-none object-cover'
+            />
+          ))}
+        </div>
+
+        <div className='pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/60 to-transparent' />
+
+        {count > 1 && (
+          <>
+            {[[-1, LuChevronLeft, 'left-4'], [1, LuChevronRight, 'right-4']].map(([dir, Icon, pos]) => (
+              <button
+                key={dir}
+                type='button'
+                onClick={() => go(dir)}
+                aria-label={dir < 0 ? 'Previous photo' : 'Next photo'}
+                className={`absolute ${pos} top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-white/40 bg-cream/85 text-ink backdrop-blur-md transition-all hover:scale-110 hover:border-accent hover:bg-accent hover:text-white sm:opacity-0 sm:group-hover:opacity-100`}
+              >
+                <Icon className='h-5 w-5' />
+              </button>
+            ))}
+
+            <div className='absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-1.5'>
+              {images.map((_, i) => (
+                <button
+                  key={i}
+                  type='button'
+                  onClick={() => setActive(i)}
+                  aria-label={`Show photo ${i + 1}`}
+                  className={`h-1.5 rounded-full transition-all duration-500 ${i === active ? 'w-7 bg-accent' : 'w-1.5 bg-white/50 hover:bg-white'}`}
+                />
+              ))}
+            </div>
+            <p className='absolute bottom-4 right-5 font-sans text-xs text-white/80'>
+              {String(active + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}
+            </p>
+          </>
+        )}
+      </div>
+
+      {count > 1 && (
+        <div className='mt-3 flex gap-2 overflow-x-auto pb-1'>
+          {images.map((img, i) => (
+            <button
+              key={i}
+              type='button'
+              onClick={() => setActive(i)}
+              className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl transition-all duration-300 ${
+                i === active ? 'opacity-100 ring-2 ring-accent ring-offset-2 ring-offset-cream' : 'opacity-40 hover:opacity-80'
+              }`}
+            >
+              <img src={optimizeImg(img, 200)} alt='' loading='lazy' className='h-full w-full object-cover' />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Fact({ icon: Icon, label, value, accent }) {
+  return (
+    <div className='rounded-2xl border border-line bg-card p-5'>
+      <Icon className={`h-5 w-5 ${accent ? 'text-accent' : 'text-dim'}`} />
+      <p className={`mt-4 font-display text-2xl font-bold tracking-tight ${accent ? 'text-accent' : 'text-ink'}`}>{value}</p>
+      <p className='mt-0.5 font-sans text-[11px] uppercase tracking-[0.16em] text-dim'>{label}</p>
+    </div>
   );
 }
 
@@ -22,10 +136,32 @@ export default function Listing() {
   const [landlord, setLandlord] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [activeImg, setActiveImg] = useState(0);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const [sendStatus, setSendStatus] = useState(null); // 'success' | 'error' | null
+  const [sendStatus, setSendStatus] = useState(null);
+  const [sendError, setSendError] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const fetchListing = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/listing/get/${id}`);
+        const data = await res.json();
+        if (data.success === false) { setError(true); setLoading(false); return; }
+        setListing(data);
+        setLoading(false);
+        const userRes = await fetch(`/api/user/${data.userRef}`);
+        const userData = await userRes.json();
+        if (userData.success !== false) setLandlord(userData);
+      } catch {
+        setError(true);
+        setLoading(false);
+      }
+    };
+    fetchListing();
+    window.scrollTo(0, 0);
+  }, [id]);
 
   const handleSendMessage = async () => {
     if (!message.trim() || sending) return;
@@ -41,298 +177,202 @@ export default function Listing() {
       const data = await res.json();
       if (!res.ok || data.success === false) {
         setSendStatus('error');
+        setSendError(data.message || 'Something went wrong.');
       } else {
         setSendStatus('success');
         setMessage('');
       }
     } catch {
       setSendStatus('error');
+      setSendError('Network error. Please try again.');
     } finally {
       setSending(false);
     }
   };
 
-  useEffect(() => {
-    const fetchListing = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`/api/listing/get/${id}`);
-        const data = await res.json();
-        if (data.success === false) { setError(true); setLoading(false); return; }
-        setListing(data);
-        setLoading(false);
-        // Fetch landlord info
-        const userRes = await fetch(`/api/user/${data.userRef}`);
-        const userData = await userRes.json();
-        if (!userData.success) setLandlord(userData);
-      } catch {
-        setError(true);
-        setLoading(false);
-      }
-    };
-    fetchListing();
-  }, [id]);
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch { /* clipboard nije dostupan */ }
+  };
 
-  const images = listing?.imagesUrls?.length > 0 ? listing.imagesUrls : [PLACEHOLDER];
-
-  const prevImg = () => setActiveImg((i) => (i === 0 ? images.length - 1 : i - 1));
-  const nextImg = () => setActiveImg((i) => (i === images.length - 1 ? 0 : i + 1));
-
-  if (loading) return (
-    <div className='min-h-screen flex items-center justify-center' style={{ background: '#FAF7F2' }}>
-      <div className='flex flex-col items-center gap-3'>
-        <div className='w-10 h-10 rounded-full border-4 border-t-transparent animate-spin' style={{ borderColor: '#DDD7CC', borderTopColor: '#E07B2A' }} />
-        <p className='text-sm' style={{ color: '#6B6158' }}>Učitavanje oglasa...</p>
+  if (loading) {
+    return (
+      <div className='container-x py-10'>
+        <div className='mb-8 h-12 w-2/3 animate-pulse rounded-xl bg-sand' />
+        <div className='aspect-[16/9] animate-pulse rounded-3xl bg-card' />
       </div>
-    </div>
-  );
+    );
+  }
 
-  if (error || !listing) return (
-    <div className='min-h-screen flex items-center justify-center' style={{ background: '#FAF7F2' }}>
-      <div className='text-center'>
-        <p className='text-xl font-bold mb-2' style={{ color: '#1A1612' }}>Oglas nije pronađen</p>
-        <Link to='/' className='text-sm' style={{ color: '#E07B2A' }}>Nazad na početnu</Link>
+  if (error || !listing) {
+    return (
+      <div className='container-x flex min-h-[70vh] flex-col items-center justify-center text-center'>
+        <p className='font-display text-[8rem] font-bold leading-none tracking-tightest text-ink/10'>404</p>
+        <h1 className='h-display -mt-6 text-3xl'>This listing is gone.</h1>
+        <p className='mt-3 text-muted'>It may have been sold, rented or removed by the owner.</p>
+        <Link to='/search' className='btn-primary mt-8'>Browse other listings</Link>
       </div>
-    </div>
-  );
+    );
+  }
+
+  const perM2 = pricePerM2(listing.regularPrice, listing.area);
+  const isOwner = currentUser && currentUser._id === listing.userRef;
+  const amenities = [
+    { label: 'Parking', value: listing.parking },
+    { label: 'Furnished', value: listing.furnished },
+    { label: 'Terrace', value: listing.terrace },
+  ];
 
   return (
-    <div className='min-h-screen' style={{ background: '#FAF7F2' }}>
-      <div className='max-w-4xl mx-auto px-4 py-8'>
+    <div className='container-x pb-24 pt-8'>
+      <Link to='/search' className='group mb-8 inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-ink'>
+        <LuArrowLeft className='h-4 w-4 transition-transform group-hover:-translate-x-1' /> Back to listings
+      </Link>
 
-        {/* ── TIP BADGE + NASLOV ── */}
-        <div className='mb-4'>
-          <span
-            className='inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3'
-            style={
-              listing.type === 'prodaja'
-                ? { background: '#221E1A', color: 'white' }
-                : { background: '#E07B2A', color: 'white' }
-            }
-          >
-            {listing.type === 'prodaja' ? 'Prodaja' : 'Izdavanje'}
+      {/* Naslov */}
+      <div className='mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between'>
+        <div className='animate-fade-up'>
+          <span className={`mb-5 inline-block rounded-full px-3 py-1 font-sans text-[11px] uppercase tracking-[0.16em] ${
+            isRent(listing.type) ? 'bg-accent text-white' : 'border border-ink/20 text-ink'
+          }`}>
+            {typeLabel(listing.type)}
           </span>
-          <h1 className='text-2xl sm:text-3xl font-extrabold' style={{ color: '#1A1612' }}>
-            {listing.name}
-          </h1>
-          <div className='flex items-center gap-1 mt-2' style={{ color: '#6B6158' }}>
-            <IconPin />
-            <span className='text-sm'>{listing.address}</span>
-          </div>
+          <h1 className='h-display max-w-4xl text-4xl leading-[0.95] sm:text-6xl'>{listing.name}</h1>
+          <p className='mt-4 flex items-center gap-2 text-muted'>
+            <LuMapPin className='h-4 w-4 text-accent' /> {listing.address}
+          </p>
         </div>
-
-        {/* ── GALERIJA ── */}
-        <div className='rounded-2xl overflow-hidden mb-6 shadow-md' style={{ border: '1px solid #DDD7CC' }}>
-          {/* Glavna slika */}
-          <div className='relative overflow-hidden' style={{ aspectRatio: '16/9', background: '#F2EDE3' }}>
-            {/* Slajd traka — sve slike u redu, klizi se translacijom */}
-            <div
-              className='flex h-full'
-              style={{
-                transform: `translateX(-${activeImg * 100}%)`,
-                transition: 'transform 0.55s cubic-bezier(0.65, 0, 0.35, 1)',
-                willChange: 'transform',
-              }}
-            >
-              {images.map((img, i) => (
-                <img
-                  key={i}
-                  src={optimizeImg(img, 1200)}
-                  alt={`slika-${i}`}
-                  draggable={false}
-                  loading={i === 0 ? 'eager' : 'lazy'}
-                  className='w-full h-full object-cover flex-shrink-0 select-none'
-                />
-              ))}
-            </div>
-
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={prevImg}
-                  className='absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-110 active:scale-95'
-                  style={{ background: 'rgba(253,249,244,0.92)' }}
-                >
-                  <svg className='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='#1A1612' strokeWidth={2.5}>
-                    <path strokeLinecap='round' strokeLinejoin='round' d='M15.75 19.5L8.25 12l7.5-7.5' />
-                  </svg>
-                </button>
-                <button
-                  onClick={nextImg}
-                  className='absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-110 active:scale-95'
-                  style={{ background: 'rgba(253,249,244,0.92)' }}
-                >
-                  <svg className='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='#1A1612' strokeWidth={2.5}>
-                    <path strokeLinecap='round' strokeLinejoin='round' d='M8.25 4.5l7.5 7.5-7.5 7.5' />
-                  </svg>
-                </button>
-                <div className='absolute bottom-3 right-3 text-xs font-semibold px-2 py-1 rounded-lg' style={{ background: 'rgba(26,22,18,0.6)', color: 'white' }}>
-                  {activeImg + 1} / {images.length}
-                </div>
-
-                {/* Tačkice (dots) indikator */}
-                <div className='absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5'>
-                  {images.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setActiveImg(i)}
-                      className='rounded-full transition-all duration-300'
-                      style={{
-                        height: 6,
-                        width: i === activeImg ? 18 : 6,
-                        background: i === activeImg ? '#E07B2A' : 'rgba(253,249,244,0.7)',
-                      }}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Thumbnails */}
-          {images.length > 1 && (
-            <div className='flex gap-2 p-3 overflow-x-auto' style={{ background: '#FDF9F4' }}>
-              {images.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveImg(i)}
-                  className='flex-shrink-0 rounded-xl overflow-hidden transition-all duration-300 hover:opacity-100'
-                  style={{
-                    width: 72, height: 52,
-                    outline: i === activeImg ? '2.5px solid #E07B2A' : '2px solid transparent',
-                    opacity: i === activeImg ? 1 : 0.55,
-                    transform: i === activeImg ? 'scale(1)' : 'scale(0.95)',
-                  }}
-                >
-                  <img src={optimizeImg(img, 150)} alt={`thumb-${i}`} loading='lazy' className='w-full h-full object-cover' />
-                </button>
-              ))}
-            </div>
+        <div className='flex items-center gap-2'>
+          <button type='button' onClick={copyLink} className='btn-ghost'>
+            {copied ? <><LuCheck className='h-4 w-4 text-emerald-600' /> Copied</> : <><LuLink className='h-4 w-4' /> Share</>}
+          </button>
+          {isOwner && (
+            <Link to={`/edit-listing/${listing._id}`} className='btn-primary'>
+              <LuPencil className='h-4 w-4' /> Edit listing
+            </Link>
           )}
         </div>
+      </div>
 
-        <div className='grid grid-cols-1 sm:grid-cols-3 gap-5'>
+      <Gallery images={listing.imagesUrls || []} name={listing.name} />
 
-          {/* ── LIJEVA KOLONA: info ── */}
-          <div className='sm:col-span-2 flex flex-col gap-5'>
-
-            {/* Specifikacije */}
-            <div className='rounded-2xl p-5' style={{ background: '#FDF9F4', border: '1px solid #DDD7CC' }}>
-              <h2 className='text-sm font-bold uppercase tracking-wider mb-4' style={{ color: '#B5AFA5' }}>Specifikacije</h2>
-              <div className='flex flex-col gap-3'>
-                {[
-                  ...(listing.area ? [{ label: 'Kvadratura', value: `${listing.area} m²` }] : []),
-                  ...(listing.area ? [{ label: 'Cena po m²', value: `${Math.round(listing.regularPrice / listing.area).toLocaleString('sr-RS')} €` }] : []),
-                  { label: 'Sprat', value: listing.floor ? listing.floor : 'Prizemlje' },
-                  { label: 'Broj soba', value: listing.bedrooms },
-                  { label: 'Broj kupatila', value: listing.bathrooms },
-                  { label: 'Terasa', value: listing.terrace ? 'Da' : 'Ne' },
-                  { label: 'Parking', value: listing.parking ? 'Da' : 'Ne' },
-                  { label: 'Namešten', value: listing.furnished ? 'Da' : 'Ne' },
-                ].map(({ label, value }) => (
-                  <div key={label} className='flex justify-between items-center py-2' style={{ borderBottom: '1px solid #F2EDE3' }}>
-                    <span className='text-sm' style={{ color: '#6B6158' }}>{label}</span>
-                    <span className='text-sm font-semibold' style={{ color: '#1A1612' }}>{value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Opis */}
-            <div className='rounded-2xl p-5' style={{ background: '#FDF9F4', border: '1px solid #DDD7CC' }}>
-              <h2 className='text-sm font-bold uppercase tracking-wider mb-3' style={{ color: '#B5AFA5' }}>Opis</h2>
-              <p className='text-sm leading-relaxed whitespace-pre-line' style={{ color: '#6B6158' }}>
-                {listing.description}
-              </p>
-            </div>
+      <div className='mt-10 grid gap-10 lg:grid-cols-[1fr_400px]'>
+        {/* Levo */}
+        <div className='min-w-0 space-y-10'>
+          <div className='grid grid-cols-2 gap-3 sm:grid-cols-3'>
+            {listing.area > 0 && <Fact icon={LuRuler} label='Living area' value={`${listing.area} m²`} />}
+            {perM2 && <Fact icon={LuCalculator} label='Price per m²' value={formatPrice(perM2)} accent />}
+            <Fact icon={LuBedDouble} label='Bedrooms' value={listing.bedrooms} />
+            <Fact icon={LuBath} label='Bathrooms' value={listing.bathrooms} />
+            <Fact icon={LuBuilding2} label='Floor' value={floorLabel(listing.floor)} />
+            {listing.heating && <Fact icon={LuFlame} label='Heating' value={listing.heating} />}
           </div>
 
-          {/* ── DESNA KOLONA: cena + kontakt ── */}
-          <div className='flex flex-col gap-4'>
+          <div>
+            <p className='eyebrow mb-5'><span className='h-px w-6 bg-accent' />About this place</p>
+            <p className='whitespace-pre-line text-lg leading-relaxed text-ink/80'>{listing.description}</p>
+          </div>
 
-            {/* Cena */}
-            <div className='rounded-2xl p-5 text-center' style={{ background: '#221E1A', border: '1px solid #221E1A' }}>
-              <p className='text-xs font-semibold uppercase tracking-widest mb-1' style={{ color: 'rgba(255,255,255,0.45)' }}>
-                {listing.type === 'izdavanje' ? 'Cena / mj.' : 'Prodajna cena'}
-              </p>
-              <p className='text-3xl font-extrabold' style={{ color: '#E07B2A' }}>
-                {listing.regularPrice.toLocaleString('sr-RS')} €
-              </p>
-              {listing.type === 'izdavanje' && (
-                <p className='text-xs mt-1' style={{ color: 'rgba(255,255,255,0.35)' }}>mjesečno</p>
-              )}
-            </div>
-
-            {/* Kontakt */}
-            {currentUser && currentUser._id !== listing.userRef && landlord && (
-              <div className='rounded-2xl p-5' style={{ background: '#FDF9F4', border: '1px solid #DDD7CC' }}>
-                <h2 className='text-sm font-bold uppercase tracking-wider mb-1' style={{ color: '#B5AFA5' }}>Kontakt</h2>
-
-                {/* Landlord info */}
-                <div className='flex items-center gap-3 mb-4 mt-3 pb-4' style={{ borderBottom: '1px solid #F2EDE3' }}>
-                  <img
-                    src={landlord.avatar}
-                    alt={landlord.username}
-                    className='w-10 h-10 rounded-full object-cover flex-shrink-0'
-                    style={{ border: '2px solid #DDD7CC' }}
-                  />
-                  <div>
-                    <p className='text-sm font-semibold' style={{ color: '#1A1612' }}>{landlord.username}</p>
-                    <p className='text-xs' style={{ color: '#B5AFA5' }}>{landlord.email}</p>
-                  </div>
-                </div>
-
-                <textarea
-                  rows={3}
-                  value={message}
-                  onChange={e => setMessage(e.target.value)}
-                  placeholder={`Zainteresovan sam za "${listing.name}"...`}
-                  className='w-full rounded-xl px-3 py-2 text-sm outline-none resize-none mb-3 transition-all duration-200'
-                  style={{ background: '#F2EDE3', border: '1px solid #DDD7CC', color: '#1A1612' }}
-                  onFocus={e => { e.target.style.border = '1.5px solid #E07B2A'; e.target.style.boxShadow = '0 0 0 3px rgba(224,123,42,0.15)'; }}
-                  onBlur={e => { e.target.style.border = '1px solid #DDD7CC'; e.target.style.boxShadow = 'none'; }}
-                />
-
-                <button
-                  type='button'
-                  onClick={handleSendMessage}
-                  disabled={!message.trim() || sending}
-                  className='w-full py-2.5 rounded-xl text-sm font-semibold text-white text-center transition-all duration-200 block'
-                  style={{
-                    background: message.trim() && !sending ? '#E07B2A' : '#DDD7CC',
-                    cursor: message.trim() && !sending ? 'pointer' : 'not-allowed',
-                  }}
-                  onMouseEnter={e => { if (message.trim() && !sending) e.currentTarget.style.background = '#C45F12'; }}
-                  onMouseLeave={e => { if (message.trim() && !sending) e.currentTarget.style.background = '#E07B2A'; }}
+          <div>
+            <p className='eyebrow mb-5'><span className='h-px w-6 bg-accent' />Amenities</p>
+            <div className='grid gap-3 sm:grid-cols-3'>
+              {amenities.map(({ label, value }) => (
+                <div
+                  key={label}
+                  className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 text-sm ${
+                    value ? 'border-accent/30 bg-accent/[0.07] text-ink' : 'border-line text-dim line-through decoration-white/20'
+                  }`}
                 >
-                  {sending ? 'Slanje...' : 'Pošalji poruku'}
-                </button>
-
-                {sendStatus === 'success' && (
-                  <p className='text-xs mt-2 text-center font-medium' style={{ color: '#2E7D32' }}>
-                    Poruka je uspešno poslata!
-                  </p>
-                )}
-                {sendStatus === 'error' && (
-                  <p className='text-xs mt-2 text-center font-medium' style={{ color: '#C0392B' }}>
-                    Greška pri slanju. Pokušajte ponovo.
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Vlasnik oglasa */}
-            {currentUser && currentUser._id === listing.userRef && (
-              <Link
-                to={`/edit-listing/${listing._id}`}
-                className='w-full py-2.5 rounded-xl text-sm font-semibold text-center text-white transition-all duration-200 block'
-                style={{ background: '#E07B2A' }}
-              >
-                Uredi oglas
-              </Link>
-            )}
+                  <span className={`grid h-6 w-6 place-items-center rounded-full ${value ? 'bg-accent text-white' : 'bg-sand/60'}`}>
+                    {value ? <LuCheck className='h-3.5 w-3.5' strokeWidth={3} /> : <LuX className='h-3.5 w-3.5' />}
+                  </span>
+                  {label}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+
+        {/* Desno — cena + kontakt */}
+        <aside className='space-y-4 lg:sticky lg:top-28 lg:self-start'>
+          <div className='noise relative overflow-hidden rounded-3xl border border-accent/25 bg-gradient-to-br from-accent/[0.15] via-card to-card p-7'>
+            <p className='font-sans text-[11px] uppercase tracking-[0.18em] text-muted'>
+              {isRent(listing.type) ? 'Monthly rent' : 'Asking price'}
+            </p>
+            <p className='mt-2 font-display text-5xl font-bold tracking-tightest text-ink'>
+              {formatPrice(listing.regularPrice)}
+              {isRent(listing.type) && <span className='ml-1 text-xl font-medium text-muted'>/mo</span>}
+            </p>
+            {perM2 && <p className='mt-2 font-sans text-sm text-accent'>{formatPrice(perM2)} per m²</p>}
+          </div>
+
+          {!isOwner && (
+            <div className='panel p-7'>
+              {landlord && (
+                <div className='mb-6 flex items-center gap-3 border-b border-line pb-6'>
+                  <span className='grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-accent to-accent-deep font-display text-sm font-bold text-white'>
+                    {getInitials(landlord.username)}
+                  </span>
+                  <div className='min-w-0'>
+                    <p className='truncate font-semibold text-ink'>{landlord.username}</p>
+                    <p className='text-xs text-muted'>Listing owner</p>
+                  </div>
+                </div>
+              )}
+
+              {!currentUser ? (
+                <div className='text-center'>
+                  <p className='h-display text-xl'>Interested?</p>
+                  <p className='mt-2 text-sm text-muted'>Sign in to message the owner directly.</p>
+                  <Link to='/sign-in' className='btn-primary mt-5 w-full'><LuLogIn className='h-4 w-4' /> Sign in to contact</Link>
+                </div>
+              ) : sendStatus === 'success' ? (
+                <div className='py-4 text-center'>
+                  <span className='mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-100 text-emerald-600'>
+                    <LuCheck className='h-7 w-7' strokeWidth={3} />
+                  </span>
+                  <p className='h-display mt-4 text-xl'>Message sent!</p>
+                  <p className='mt-2 text-sm text-muted'>The owner will reply straight to your email.</p>
+                  <button type='button' onClick={() => setSendStatus(null)} className='btn-ghost mt-5'>Send another</button>
+                </div>
+              ) : (
+                <>
+                  <p className='label'>Message the owner</p>
+                  <div className='mb-3 flex flex-wrap gap-1.5'>
+                    {QUICK_MESSAGES.map((q) => (
+                      <button key={q} type='button' onClick={() => setMessage(q)} className='chip hover:border-accent/50 hover:text-ink'>
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    rows={4}
+                    maxLength={2000}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder={`Hi! I'm interested in “${listing.name}”…`}
+                    className='input resize-none'
+                  />
+                  <button
+                    type='button'
+                    onClick={handleSendMessage}
+                    disabled={!message.trim() || sending}
+                    className='btn-primary mt-3 w-full !py-3.5'
+                  >
+                    {sending ? 'Sending…' : <><LuSend className='h-4 w-4' /> Send message</>}
+                  </button>
+                  {sendStatus === 'error' && (
+                    <p className='mt-3 text-center text-sm text-red-600'>{sendError}</p>
+                  )}
+                  <p className='mt-4 text-center text-xs text-dim'>Your email is shared with the owner so they can reply.</p>
+                </>
+              )}
+            </div>
+          )}
+        </aside>
       </div>
     </div>
   );

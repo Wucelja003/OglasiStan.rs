@@ -7,7 +7,7 @@ const getResend = () => {
 
   if (!process.env.RESEND_API_KEY) {
     throw new Error(
-      'Email nije konfigurisan. Postavi RESEND_API_KEY u .env.'
+      'Email is not configured. Set RESEND_API_KEY in .env.'
     );
   }
 
@@ -30,7 +30,7 @@ export const sendMail = async ({ to, replyTo, subject, text, html }) => {
   });
 
   if (error) {
-    throw new Error(error.message || 'Greška pri slanju mejla.');
+    throw new Error(error.message || 'Failed to send email.');
   }
 
   return data;

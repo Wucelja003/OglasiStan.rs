@@ -2,8 +2,130 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+@layer base {
+  html {
     background-color: #FAF7F2;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream font-sans text-ink antialiased;
     margin: 0;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: rgba(224, 123, 42, 0.25);
     color: #1A1612;
+  }
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #FAF7F2; }
+  ::-webkit-scrollbar-thumb { background: #DDD7CC; border-radius: 99px; border: 2px solid #FAF7F2; }
+  ::-webkit-scrollbar-thumb:hover { background: #E07B2A; }
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  /* Mali natpis iznad naslova */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-accent;
+  }
+  .h-display {
+    @apply font-display font-semibold tracking-tightest text-ink;
+    font-optical-sizing: auto;
+  }
+  /* Kurzivni naglasak u naslovima (Fraunces italic) */
+  .accent-italic {
+    @apply font-display italic text-accent;
+    font-weight: 500;
+  }
+
+  /* Dugmad */
+  .btn {
+    @apply relative inline-flex shrink-0 items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-full px-6 py-3 text-sm font-semibold transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-white;
+    box-shadow: 0 8px 24px -8px rgba(224, 123, 42, 0.55);
+  }
+  .btn-primary:hover:not(:disabled) {
+    @apply -translate-y-0.5 bg-accent-deep;
+    box-shadow: 0 14px 32px -10px rgba(196, 95, 18, 0.6);
+  }
+  .btn-dark {
+    @apply btn bg-espresso text-white;
+  }
+  .btn-dark:hover:not(:disabled) { @apply -translate-y-0.5 bg-accent; }
+  .btn-ghost {
+    @apply btn border border-line bg-card text-ink;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    @apply -translate-y-0.5 border-ink/25 bg-white;
+  }
+  .btn-danger {
+    @apply btn border border-red-200 bg-red-50 text-red-600;
+  }
+  .btn-danger:hover:not(:disabled) { @apply border-red-300 bg-red-100; }
+
+  /* Forme */
+  .label {
+    @apply mb-2 block text-xs font-semibold uppercase tracking-[0.1em] text-muted;
+  }
+  .input {
+    @apply w-full rounded-2xl border border-line bg-sand px-4 py-3 text-sm text-ink outline-none transition-all duration-200 placeholder:text-dim;
+  }
+  .input:hover { @apply border-ink/20; }
+  .input:focus { @apply border-accent bg-card; box-shadow: 0 0 0 4px rgba(224, 123, 42, 0.14); }
+
+  /* Površine */
+  .panel {
+    @apply rounded-3xl border border-line bg-card;
+    box-shadow: 0 1px 2px rgba(34, 30, 26, 0.04), 0 12px 32px -18px rgba(34, 30, 26, 0.12);
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3.5 py-1.5 text-xs font-medium text-muted transition-colors;
+  }
+
+  /* Topla tekstura — tačkice umesto "tech" mreže */
+  .bg-grid {
+    background-image: radial-gradient(rgba(34, 30, 26, 0.09) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .mask-fade-b {
+    -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent);
+    mask-image: linear-gradient(to bottom, #000 40%, transparent);
+  }
+  .mask-radial {
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+    mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+  }
+  .noise::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  /* Tamne sekcije */
+  .section-dark {
+    @apply relative overflow-hidden bg-espresso text-white;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -39,7 +39,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Health check za Railway
-app.get('/', (req, res) => res.json({ status: 'OglasiStan API radi' }));
+app.get('/', (req, res) => res.json({ status: 'OglasiStan API is running' }));
 
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);

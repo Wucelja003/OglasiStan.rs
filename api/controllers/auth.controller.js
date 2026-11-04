@@ -17,6 +17,13 @@ try{
         res.cookie('access_token', token, getCookieOptions()).status(201).json(rest);
 
 } catch(error) {
+    // Duplikat korisničkog imena / emaila -> čitljiva poruka umesto sirove Mongo greške
+    if (error?.code === 11000) {
+        const field = Object.keys(error.keyPattern || {})[0];
+        return next(errorHandler(409, field === 'email'
+            ? 'An account with this email already exists.'
+            : 'That username is already taken.'));
+    }
     next(error);
 }
 };

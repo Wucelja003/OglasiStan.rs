@@ -38,6 +38,11 @@ const listingSchema = new mongoose.Schema(
             required: false,
             default: false,
         },
+        heating: {
+            type: String,
+            required: false,
+            default: '',
+        },
         bathrooms: {
             type: Number,
             required: true

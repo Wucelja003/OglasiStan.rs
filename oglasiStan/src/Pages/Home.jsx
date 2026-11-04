@@ -1,364 +1,491 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { optimizeImg } from '../utils/img';
+import {
+  LuSearch, LuArrowRight, LuArrowUpRight, LuMessageSquare, LuCalculator, LuSlidersHorizontal,
+  LuShieldCheck, LuSmartphone, LuSparkles, LuMapPin, LuBedDouble, LuRuler, LuCheck, LuHouse,
+} from 'react-icons/lu';
+import RotatingText from '../components/rb/RotatingText';
+import BlurText from '../components/rb/BlurText';
+import CountUp from '../components/rb/CountUp';
+import ScrollVelocity from '../components/rb/ScrollVelocity';
+import SpotlightCard from '../components/rb/SpotlightCard';
+import FadeContent from '../components/rb/FadeContent';
+import ListingCard, { ListingCardSkeleton } from '../components/ListingCard';
+import SectionHeading from '../components/SectionHeading';
+import { formatPrice, pricePerM2, typeLabel } from '../utils/format';
 
-const PLACEHOLDER = 'https://placehold.co/400x260/F2EDE3/B5AFA5?text=Nema+slike';
+const CITIES = ['Belgrade', 'Novi Sad', 'Niš', 'Kragujevac', 'Subotica', 'Zlatibor'];
+// Adrese u oglasima su na srpskom, pa pretraga koristi lokalni naziv
+const CITY_QUERY = { Belgrade: 'Beograd' };
 
-function ListingCard({ listing }) {
-  const img = listing.imagesUrls?.[0] ? optimizeImg(listing.imagesUrls[0], 600) : PLACEHOLDER;
+const getJSON = async (url) => {
+  try {
+    const res = await fetch(url);
+    return await res.json();
+  } catch {
+    return null;
+  }
+};
+
+/* ───────────── Hero ilustracija: lebdeće UI kartice (bez fotografija) ───────────── */
+function HeroCollage({ listing }) {
+  const name = listing?.name || 'Bright 2-bedroom flat';
+  const address = listing?.address || 'Novi Sad';
+  const price = listing?.regularPrice || 98000;
+  const area = listing?.area || 54;
+  const beds = listing?.bedrooms || 2;
+  const perM2 = pricePerM2(price, area);
+
   return (
-    <Link
-      to={`/listing/${listing._id}`}
-      className='block group rounded-2xl overflow-hidden transition-all duration-200 hover:-translate-y-1'
-      style={{ background: '#FDF9F4', border: '1px solid #DDD7CC', boxShadow: '0 1px 4px rgba(26,22,18,0.06)' }}
-    >
-      <div className='relative overflow-hidden' style={{ aspectRatio: '3/2', background: '#F2EDE3' }}>
-        <img src={img} alt={listing.name} loading='lazy' className='w-full h-full object-cover transition-transform duration-300 group-hover:scale-105' />
-        <span
-          className='absolute top-3 left-3 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full'
-          style={listing.type === 'prodaja' ? { background: '#221E1A', color: 'white' } : { background: '#E07B2A', color: 'white' }}
-        >
-          {listing.type === 'prodaja' ? 'Prodaja' : 'Izdavanje'}
-        </span>
-      </div>
-      <div className='p-4'>
-        <h3 className='font-semibold text-sm mb-1 truncate' style={{ color: '#1A1612' }}>{listing.name}</h3>
-        <p className='text-xs mb-3 truncate flex items-center gap-1' style={{ color: '#B5AFA5' }}>
-          <svg className='w-3 h-3 flex-shrink-0' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
-            <path strokeLinecap='round' strokeLinejoin='round' d='M15 10.5a3 3 0 11-6 0 3 3 0 016 0zM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z' />
-          </svg>
-          {listing.address}
-        </p>
-        <div className='flex items-center justify-between'>
-          <p className='font-extrabold text-base' style={{ color: '#E07B2A' }}>
-            {listing.regularPrice.toLocaleString('sr-RS')} €
-            {listing.type === 'izdavanje' && <span className='text-xs font-normal ml-0.5' style={{ color: '#B5AFA5' }}>/mj</span>}
-          </p>
-          <div className='flex items-center gap-3 text-xs' style={{ color: '#6B6158' }}>
-            <span>{listing.bedrooms} sobe</span>
-            <span style={{ color: '#DDD7CC' }}>·</span>
-            <span>{listing.bathrooms} kup.</span>
+    <div className='relative mx-auto h-[440px] w-full max-w-md lg:h-[520px]'>
+      {/* Pozadinski oblik */}
+      <div className='absolute inset-6 rotate-3 rounded-[2.5rem] bg-sand' />
+      <div className='absolute inset-6 -rotate-2 rounded-[2.5rem] border border-line bg-card/60' />
+
+      {/* Glavna kartica oglasa */}
+      <div className='absolute left-1/2 top-12 w-[86%] -translate-x-1/2'>
+      <div className='animate-float rounded-3xl border border-line bg-white p-6 shadow-[0_30px_60px_-25px_rgba(34,30,26,0.35)]' style={{ '--r': '-2deg' }}>
+        <div className='bg-grid grid h-28 place-items-center rounded-2xl bg-sand'>
+          <LuHouse className='h-10 w-10 text-accent' />
+        </div>
+        <div className='mt-5 flex items-start justify-between gap-3'>
+          <div className='min-w-0'>
+            <span className='rounded-full bg-accent/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-accent'>
+              {typeLabel(listing?.type)}
+            </span>
+            <p className='mt-2.5 truncate font-display text-lg font-semibold text-ink'>{name}</p>
+            <p className='mt-0.5 flex items-center gap-1 truncate text-xs text-muted'><LuMapPin className='h-3 w-3 shrink-0' />{address}</p>
+          </div>
+        </div>
+        <div className='mt-4 flex items-end justify-between border-t border-line pt-4'>
+          <p className='font-display text-2xl font-semibold text-ink'>{formatPrice(price)}</p>
+          <div className='flex gap-3 text-xs text-muted'>
+            <span className='flex items-center gap-1'><LuBedDouble className='h-3.5 w-3.5' />{beds}</span>
+            <span className='flex items-center gap-1'><LuRuler className='h-3.5 w-3.5' />{area} m²</span>
           </div>
         </div>
       </div>
-    </Link>
+      </div>
+
+      {/* Cena po m² */}
+      {perM2 && (
+        <div className='absolute -left-2 bottom-24 animate-float rounded-2xl bg-espresso px-5 py-4 text-white shadow-2xl sm:-left-6' style={{ animationDelay: '-2s', '--r': '-4deg' }}>
+          <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-white/60'>Price per m²</p>
+          <p className='mt-1 font-display text-2xl font-semibold'>{formatPrice(perM2)}</p>
+        </div>
+      )}
+
+      {/* Poruka */}
+      <div className='absolute -right-2 bottom-8 w-56 animate-float rounded-2xl border border-line bg-white p-4 shadow-xl sm:-right-6' style={{ animationDelay: '-4s', '--r': '3deg' }}>
+        <div className='flex items-center gap-2'>
+          <span className='grid h-7 w-7 place-items-center rounded-full bg-accent text-[11px] font-bold text-white'>MK</span>
+          <p className='text-xs font-semibold text-ink'>New message</p>
+          <span className='ml-auto h-2 w-2 animate-pulse-dot rounded-full bg-accent' />
+        </div>
+        <p className='mt-2 text-sm text-muted'>Hi! Is the flat still available for a viewing?</p>
+      </div>
+
+      {/* 0% */}
+      <div className='absolute -top-1 right-2 grid h-24 w-24 animate-float place-items-center rounded-full bg-accent text-center text-white shadow-[0_20px_40px_-15px_rgba(224,123,42,0.8)]' style={{ animationDelay: '-1s', '--r': '8deg' }}>
+        <div>
+          <p className='font-display text-2xl font-semibold leading-none'>0%</p>
+          <p className='mt-1 text-[9px] font-bold uppercase tracking-wider'>commission</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
-export default function Home() {
-  const [ponude, setPonude] = useState([]);
-  const [iznajmljivanje, setIznajmljivanje] = useState([]);
+/* ───────────────────────────── HERO ───────────────────────────── */
+function Hero({ stats, featured }) {
+  const navigate = useNavigate();
+  const [term, setTerm] = useState('');
+  const [mode, setMode] = useState('prodaja');
 
-  useEffect(() => {
-    const fetchPonude = async () => {
-      try {
-        const res = await fetch('/api/listing/search?sort=regularPrice&order=asc&limit=4');
-        const data = await res.json();
-        setPonude(data.listings || []);
-      } catch { setPonude([]); }
-    };
-    const fetchIznajmljivanje = async () => {
-      try {
-        const res = await fetch('/api/listing/search?type=izdavanje&sort=regularPrice&order=asc&limit=4');
-        const data = await res.json();
-        setIznajmljivanje(data.listings || []);
-      } catch { setIznajmljivanje([]); }
-    };
-    fetchPonude();
-    fetchIznajmljivanje();
-  }, []);
+  const submit = (e) => {
+    e.preventDefault();
+    const p = new URLSearchParams();
+    if (term.trim()) p.set('searchTerm', term.trim());
+    p.set('type', mode);
+    navigate(`/search?${p.toString()}`);
+  };
 
   return (
-    <div>
-      {/* ── HERO ── */}
-      <section
-        className='relative flex items-center justify-center overflow-hidden'
-        style={{ minHeight: 'calc(100vh - 96px)' }}
-      >
-        <style>{`
-          @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(32px); }
-            to   { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes shimmer {
-            0%   { background-position: -200% center; }
-            100% { background-position: 200% center; }
-          }
-          .hero-badge   { animation: fadeUp 0.7s ease both; }
-          .hero-title   { animation: fadeUp 0.7s 0.15s ease both; }
-          .hero-sub     { animation: fadeUp 0.7s 0.3s ease both; }
-          .hero-btns    { animation: fadeUp 0.7s 0.45s ease both; }
-          .hero-stats   { animation: fadeUp 0.7s 0.6s ease both; }
+    <section className='noise relative -mt-24 overflow-hidden pb-16 pt-36 sm:pt-44 lg:pb-24'>
+      {/* Topla pozadina */}
+      <div className='absolute -left-40 -top-40 h-[34rem] w-[34rem] animate-drift rounded-full bg-accent/20 blur-[120px]' />
+      <div className='absolute -right-32 top-20 h-[28rem] w-[28rem] animate-drift rounded-full bg-accent-amber/20 blur-[120px]' style={{ animationDelay: '-7s' }} />
+      <div className='bg-grid mask-fade-b absolute inset-0 opacity-70' />
 
-          .btn-primary {
-            position: relative; overflow: hidden;
-            background: #E07B2A;
-            transition: transform 0.2s, box-shadow 0.2s;
-          }
-          .btn-primary::after {
-            content: '';
-            position: absolute; inset: 0;
-            background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%);
-            background-size: 200% 100%;
-            opacity: 0;
-            transition: opacity 0.2s;
-          }
-          .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(224,123,42,0.55); }
-          .btn-primary:hover::after { opacity: 1; animation: shimmer 0.6s linear; }
-          .btn-primary:active { transform: translateY(0) scale(0.97); }
-
-          .btn-ghost {
-            position: relative; overflow: hidden;
-            transition: transform 0.2s, background 0.2s;
-          }
-          .btn-ghost:hover { transform: translateY(-2px); background: rgba(255,255,255,0.2) !important; }
-          .btn-ghost:active { transform: translateY(0) scale(0.97); }
-        `}</style>
-
-        {/* Pozadinska slika */}
-        <img
-          src='/NoviSad.jpg'
-          alt='Novi Sad'
-          className='absolute inset-0 w-full h-full object-cover'
-          style={{ transform: 'scale(1.03)' }}
-        />
-
-        {/* Overlay — jači gradijent odozdo */}
-        <div
-          className='absolute inset-0'
-          style={{ background: 'linear-gradient(to bottom, rgba(10,8,6,0.35) 0%, rgba(10,8,6,0.78) 100%)' }}
-        />
-
-        {/* Sadržaj */}
-        <div className='relative z-10 text-center px-4 max-w-4xl mx-auto'>
-
-          {/* Badge */}
-          <div className='hero-badge inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-7'
-            style={{ background: 'rgba(224,123,42,0.18)', border: '1px solid rgba(224,123,42,0.45)' }}>
-            <span className='w-1.5 h-1.5 rounded-full' style={{ background: '#E07B2A' }} />
-            <span className='text-xs font-bold uppercase tracking-widest' style={{ color: '#E07B2A' }}>
-              OglasiStan.com
-            </span>
+      <div className='container-x relative grid items-center gap-14 lg:grid-cols-[1.15fr_1fr]'>
+        <div>
+          <div className='animate-fade-up chip mb-8 !bg-white'>
+            <span className='h-1.5 w-1.5 animate-pulse-dot rounded-full bg-accent' />
+            Serbia’s free property marketplace
           </div>
 
-          {/* Naslov */}
-          <h1 className='hero-title font-extrabold text-white leading-[1.08] mb-6'
-            style={{ fontSize: 'clamp(2.6rem, 7vw, 5rem)', letterSpacing: '-0.02em' }}>
-            Pronađi svoj{' '}
-            <span style={{
-              background: 'linear-gradient(135deg, #E07B2A 0%, #F5A623 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}>
-              novi dom
+          <h1 className='h-display leading-[0.98]' style={{ fontSize: 'clamp(2.9rem, 7.2vw, 6.4rem)' }}>
+            <span className='block overflow-hidden pb-[0.08em]'>
+              <span className='block animate-reveal'>A better way</span>
+            </span>
+            <span className='block overflow-hidden pb-[0.12em]'>
+              <span className='flex flex-wrap items-baseline gap-x-[0.25em] animate-reveal' style={{ animationDelay: '140ms' }}>
+                to find your
+                <RotatingText
+                  texts={['home.', 'flat.', 'house.', 'studio.']}
+                  mainClassName='accent-italic'
+                  splitLevelClassName='overflow-hidden pb-[0.12em] pr-[0.08em]'
+                  staggerFrom='last'
+                  staggerDuration={0.025}
+                  initial={{ y: '100%' }}
+                  animate={{ y: 0 }}
+                  exit={{ y: '-120%' }}
+                  transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+                  rotationInterval={2400}
+                />
+              </span>
             </span>
           </h1>
 
-          {/* Podtekst */}
-          <p className='hero-sub text-lg sm:text-xl mb-10 max-w-2xl mx-auto leading-relaxed'
-            style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 400 }}>
-            Kupovina, prodaja i iznajmljivanje nekretnina —
-            <br className='hidden sm:block' /> bez posrednika, bez provizije.
-          </p>
-
-          {/* Dugmad */}
-          <div className='hero-btns flex flex-col sm:flex-row items-center justify-center gap-4 mb-14'>
-            <Link
-              to='/create-listing'
-              className='btn-primary w-full sm:w-auto flex items-center justify-center gap-2.5 px-9 py-4 rounded-2xl font-bold text-white'
-              style={{ fontSize: '0.95rem', letterSpacing: '0.01em', boxShadow: '0 4px 24px rgba(224,123,42,0.4)' }}
-            >
-              <svg className='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2.5}>
-                <path strokeLinecap='round' strokeLinejoin='round' d='M12 4.5v15m7.5-7.5h-15' />
-              </svg>
-              Oglasi stan
-            </Link>
-
-            <Link
-              to='/search'
-              className='btn-ghost w-full sm:w-auto flex items-center justify-center gap-2.5 px-9 py-4 rounded-2xl font-bold text-white'
-              style={{
-                fontSize: '0.95rem',
-                letterSpacing: '0.01em',
-                background: 'rgba(255,255,255,0.1)',
-                border: '1.5px solid rgba(255,255,255,0.3)',
-                backdropFilter: 'blur(12px)',
-              }}
-            >
-              <svg className='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2.5}>
-                <path strokeLinecap='round' strokeLinejoin='round' d='M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z' />
-              </svg>
-              Pretraži ponude
-            </Link>
+          <div className='mt-7 max-w-xl'>
+            <BlurText
+              text='Buy, sell and rent property across Serbia. Talk straight to owners, see the real price per m², and list your place in two minutes — completely free.'
+              delay={25}
+              animateBy='words'
+              direction='bottom'
+              className='text-base leading-relaxed text-muted sm:text-lg'
+            />
           </div>
 
-          {/* Statistike */}
-          <div className='hero-stats flex items-center justify-center gap-8 sm:gap-12'>
+          {/* Pretraga */}
+          <form
+            onSubmit={submit}
+            className='animate-fade-up mt-9 flex max-w-2xl flex-col gap-2 rounded-3xl border border-line bg-white p-2 shadow-[0_20px_50px_-25px_rgba(34,30,26,0.3)] sm:flex-row sm:items-center sm:rounded-full'
+            style={{ animationDelay: '500ms' }}
+          >
+            <div className='flex rounded-full bg-sand p-1'>
+              {[['prodaja', 'Buy'], ['izdavanje', 'Rent']].map(([val, lab]) => (
+                <button
+                  key={val}
+                  type='button'
+                  onClick={() => setMode(val)}
+                  className={`flex-1 rounded-full px-5 py-2 text-sm font-semibold transition-all sm:flex-none ${
+                    mode === val ? 'bg-espresso text-white shadow' : 'text-muted hover:text-ink'
+                  }`}
+                >
+                  {lab}
+                </button>
+              ))}
+            </div>
+            <label className='flex flex-1 items-center gap-3 px-3'>
+              <LuSearch className='h-5 w-5 shrink-0 text-accent' />
+              <input
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+                placeholder='City or street'
+                className='w-full bg-transparent py-3 text-base text-ink outline-none placeholder:text-dim'
+              />
+            </label>
+            <button type='submit' className='btn-primary !py-3.5'>
+              Search <LuArrowRight className='h-4 w-4' />
+            </button>
+          </form>
+
+          <div className='animate-fade-up mt-5 flex flex-wrap items-center gap-2' style={{ animationDelay: '650ms' }}>
+            <span className='mr-1 text-xs font-semibold text-dim'>Popular:</span>
+            {CITIES.slice(0, 4).map((c) => (
+              <Link key={c} to={`/search?searchTerm=${encodeURIComponent(CITY_QUERY[c] || c)}`} className='chip hover:border-accent hover:text-accent'>
+                {c}
+              </Link>
+            ))}
+          </div>
+
+          {/* Statistika */}
+          <div className='animate-fade-up mt-12 flex flex-wrap items-center gap-x-10 gap-y-6' style={{ animationDelay: '800ms' }}>
             {[
-              { value: '100%', label: 'Besplatno' },
-              { value: '0', label: 'Provizija' },
-              { value: '24/7', label: 'Dostupno' },
-            ].map(({ value, label }) => (
-              <div key={label} className='text-center'>
-                <p className='text-2xl sm:text-3xl font-extrabold text-white' style={{ letterSpacing: '-0.02em' }}>{value}</p>
-                <p className='text-xs uppercase tracking-widest mt-0.5' style={{ color: 'rgba(255,255,255,0.45)' }}>{label}</p>
+              { value: stats.total, label: 'Live listings' },
+              { value: stats.sale, label: 'For sale' },
+              { value: stats.rent, label: 'For rent' },
+            ].map((s, i) => (
+              <div key={s.label} className={`${i ? 'border-l border-line pl-10' : ''}`}>
+                <p className='font-display text-4xl font-semibold text-ink'>
+                  {s.value === null ? '—' : <CountUp to={s.value} duration={1.6} separator=',' />}
+                </p>
+                <p className='mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-dim'>{s.label}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <div className='absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 animate-bounce'>
-          <svg className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.4)' strokeWidth={2}>
-            <path strokeLinecap='round' strokeLinejoin='round' d='M19 9l-7 7-7-7' />
-          </svg>
+        <div className='animate-fade-up' style={{ animationDelay: '300ms' }}>
+          <HeroCollage listing={featured} />
         </div>
-      </section>
-      {/* ── NAJPOVOLJNIJE PONUDE ── */}
-      <section className='max-w-6xl mx-auto px-4 py-16'>
+      </div>
+    </section>
+  );
+}
 
-        {/* Naslov sekcije */}
-        <div className='flex items-end justify-between mb-8'>
-          <div>
-            <p className='text-xs font-bold uppercase tracking-widest mb-1' style={{ color: '#E07B2A' }}>
-              Izdvojeno
+/* ─────────────────────────── LISTINGS ─────────────────────────── */
+function ListingGrid({ items, cols = 'lg:grid-cols-4', count = 4, emptyText }) {
+  if (items === null) {
+    return (
+      <div className={`grid grid-cols-1 gap-5 sm:grid-cols-2 ${cols}`}>
+        {Array.from({ length: count }).map((_, i) => <ListingCardSkeleton key={i} />)}
+      </div>
+    );
+  }
+  if (items.length === 0) {
+    return (
+      <div className='panel flex flex-col items-center justify-center gap-4 px-6 py-16 text-center'>
+        <LuSparkles className='h-8 w-8 text-accent' />
+        <p className='max-w-sm text-muted'>{emptyText}</p>
+        <Link to='/create-listing' className='btn-primary'>Be the first to post</Link>
+      </div>
+    );
+  }
+  return (
+    <FadeContent stagger={0.08} blur={6} duration={0.9} className={`grid grid-cols-1 gap-5 sm:grid-cols-2 ${cols}`}>
+      {items.map((l) => <ListingCard key={l._id} listing={l} />)}
+    </FadeContent>
+  );
+}
+
+/* ─────────────────────────── FEATURES ─────────────────────────── */
+function Bento({ className = '', dark = false, children }) {
+  return (
+    <SpotlightCard
+      className={`rounded-4xl border p-7 sm:p-8 ${dark ? 'border-espresso text-white' : 'border-line'} ${className}`}
+      style={{ '--spotlight-card-surface': dark ? '#221E1A' : '#FDF9F4', '--spotlight-card-shadow': 'none' }}
+      spotlightColor={dark ? 'rgba(224, 123, 42, 0.35)' : 'rgba(224, 123, 42, 0.12)'}
+      theme={dark ? 'dark' : 'light'}
+    >
+      {children}
+    </SpotlightCard>
+  );
+}
+
+function FeatureIcon({ icon: Icon }) {
+  return (
+    <span className='mb-6 grid h-12 w-12 place-items-center rounded-2xl bg-accent/10 text-accent'>
+      <Icon className='h-5 w-5' />
+    </span>
+  );
+}
+
+function Features() {
+  return (
+    <section className='container-x py-24 sm:py-32'>
+      <SectionHeading
+        eyebrow='Why OglasiStan'
+        title='Everything you need,'
+        accent='nothing you don’t.'
+        description='The big portals make it complicated. We made it obvious — no agents in the middle, no fees, no noise.'
+      />
+
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-6'>
+        <Bento dark className='md:col-span-4'>
+          <div className='flex h-full flex-col justify-between gap-10 sm:flex-row sm:items-end'>
+            <div className='max-w-sm'>
+              <span className='mb-6 grid h-12 w-12 place-items-center rounded-2xl bg-accent text-white'><LuSparkles className='h-5 w-5' /></span>
+              <h3 className='font-display text-3xl font-semibold tracking-tight'>Zero commission. <span className='accent-italic'>Forever.</span></h3>
+              <p className='mt-3 text-white/65'>Posting is free, contacting is free, and the deal stays between you and the other person. We never take a cut.</p>
+            </div>
+            <p className='font-display text-[6.5rem] font-semibold leading-none tracking-tightest text-accent sm:text-[8.5rem]'>
+              <CountUp from={0} to={100} direction='down' duration={2.2} />%
             </p>
-            <h2 className='text-2xl sm:text-3xl font-extrabold' style={{ color: '#1A1612' }}>
-              Naše najpovoljnije ponude
-            </h2>
           </div>
-          <Link
-            to='/search?sort=regularPrice&order=asc'
-            className='hidden sm:inline text-sm font-semibold transition-colors'
-            style={{ color: '#6B6158' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#E07B2A'}
-            onMouseLeave={e => e.currentTarget.style.color = '#6B6158'}
-          >
-            Pogledaj sve →
-          </Link>
-        </div>
+        </Bento>
 
-        {/* Kartice */}
-        {ponude.length === 0 ? (
-          <div className='text-center py-16 rounded-2xl' style={{ background: '#FDF9F4', border: '1px solid #DDD7CC' }}>
-            <p className='text-sm' style={{ color: '#B5AFA5' }}>Još nema objavljenih oglasa.</p>
+        <Bento className='md:col-span-2'>
+          <FeatureIcon icon={LuMessageSquare} />
+          <h3 className='h-display text-2xl'>Straight to the owner</h3>
+          <p className='mt-2 text-sm text-muted'>Your message lands in their inbox. Their reply lands in yours.</p>
+          <div className='mt-6 space-y-2 text-sm'>
+            <div className='w-fit max-w-[85%] rounded-2xl rounded-bl-md bg-sand px-3.5 py-2 text-ink'>Is the flat still available?</div>
+            <div className='ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-accent px-3.5 py-2 font-medium text-white'>Yes! Viewing tomorrow?</div>
           </div>
-        ) : (
-          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5'>
-            {ponude.map(l => <ListingCard key={l._id} listing={l} />)}
+        </Bento>
+
+        <Bento className='md:col-span-2'>
+          <FeatureIcon icon={LuCalculator} />
+          <h3 className='h-display text-2xl'>Price per m², instantly</h3>
+          <p className='mt-2 text-sm text-muted'>Every listing shows its real value per square metre.</p>
+          <div className='mt-6 flex h-20 items-end gap-1.5'>
+            {[38, 62, 45, 80, 54, 92, 70].map((h, i) => (
+              <div key={i} className={`flex-1 rounded-t-lg ${i === 5 ? 'bg-accent' : 'bg-sand'}`} style={{ height: `${h}%` }} />
+            ))}
           </div>
-        )}
+        </Bento>
 
-        {/* Mobilan link */}
-        <div className='text-center mt-6 sm:hidden'>
-          <Link to='/search?sort=regularPrice&order=asc' className='text-sm font-semibold' style={{ color: '#E07B2A' }}>
-            Pogledaj sve ponude →
-          </Link>
-        </div>
-      </section>
+        <Bento className='md:col-span-2'>
+          <FeatureIcon icon={LuSlidersHorizontal} />
+          <h3 className='h-display text-2xl'>Filters that get it</h3>
+          <p className='mt-2 text-sm text-muted'>Price, rooms, parking, furnished, terrace.</p>
+          <div className='mt-6 flex flex-wrap gap-2'>
+            {['2+ rooms', 'Parking', 'Terrace', '< €900/mo', 'Furnished'].map((t, i) => (
+              <span key={t} className={`chip ${i % 2 === 0 ? '!border-accent !bg-accent/10 !text-accent' : ''}`}>{t}</span>
+            ))}
+          </div>
+        </Bento>
 
-      {/* ── IZNAJMLJIVANJE ── */}
-      <section className='py-16' style={{ background: '#FDF9F4', borderTop: '1px solid #DDD7CC', borderBottom: '1px solid #DDD7CC' }}>
-        <div className='max-w-6xl mx-auto px-4'>
+        <Bento className='md:col-span-2'>
+          <FeatureIcon icon={LuShieldCheck} />
+          <h3 className='h-display text-2xl'>Real people only</h3>
+          <p className='mt-2 text-sm text-muted'>Every listing comes from a registered account. No anonymous fake ads.</p>
+        </Bento>
 
-          <div className='flex items-end justify-between mb-8'>
+        <Bento className='md:col-span-3'>
+          <FeatureIcon icon={LuSmartphone} />
+          <h3 className='h-display text-2xl'>Made for your phone</h3>
+          <p className='mt-2 text-sm text-muted'>Browse on the bus, message from the couch, post from the apartment itself.</p>
+        </Bento>
+
+        <Bento className='md:col-span-3'>
+          <div className='flex items-start justify-between gap-6'>
             <div>
-              <p className='text-xs font-bold uppercase tracking-widest mb-1' style={{ color: '#E07B2A' }}>
-                Iznajmljivanje
-              </p>
-              <h2 className='text-2xl sm:text-3xl font-extrabold' style={{ color: '#1A1612' }}>
-                Najpovoljniji stanovi za iznajmljivanje
-              </h2>
+              <FeatureIcon icon={LuCheck} />
+              <h3 className='h-display text-2xl'>Live in two minutes</h3>
+              <p className='mt-2 text-sm text-muted'>Photos, price, details — publish. Edit any time.</p>
             </div>
-            <Link
-              to='/search?type=izdavanje&sort=regularPrice&order=asc'
-              className='hidden sm:inline text-sm font-semibold transition-colors'
-              style={{ color: '#6B6158' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#E07B2A'}
-              onMouseLeave={e => e.currentTarget.style.color = '#6B6158'}
-            >
-              Pogledaj sve →
-            </Link>
+            <p className='font-display text-6xl font-semibold italic text-ink/10'>2:00</p>
           </div>
+        </Bento>
+      </div>
+    </section>
+  );
+}
 
-          {iznajmljivanje.length === 0 ? (
-            <div className='text-center py-16 rounded-2xl' style={{ background: '#FAF7F2', border: '1px solid #DDD7CC' }}>
-              <p className='text-sm' style={{ color: '#B5AFA5' }}>Trenutno nema oglasa za iznajmljivanje.</p>
-            </div>
-          ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5'>
-              {iznajmljivanje.map(l => <ListingCard key={l._id} listing={l} />)}
-            </div>
-          )}
-
-          <div className='text-center mt-6 sm:hidden'>
-            <Link to='/search?type=izdavanje&sort=regularPrice&order=asc' className='text-sm font-semibold' style={{ color: '#E07B2A' }}>
-              Pogledaj sve ponude →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── ZAŠTO OGLASISTAN ── */}
-      <section className='max-w-6xl mx-auto px-4 py-16'>
-        <div className='text-center mb-12'>
-          <p className='text-xs font-bold uppercase tracking-widest mb-2' style={{ color: '#E07B2A' }}>
-            Naše prednosti
-          </p>
-          <h2 className='text-2xl sm:text-3xl font-extrabold' style={{ color: '#1A1612' }}>
-            Zašto baš OglasiStan.rs?
+/* ─────────────────────────── HOW IT WORKS ─────────────────────────── */
+function HowItWorks() {
+  const steps = [
+    { n: '01', title: 'Create an account', text: 'Email or Google. Takes about ten seconds.' },
+    { n: '02', title: 'Post your property', text: 'Add photos, price, size, floor and the good stuff.' },
+    { n: '03', title: 'Get real messages', text: 'Interested buyers and renters email you directly.' },
+  ];
+  return (
+    <section className='section-dark'>
+      <div className='absolute -right-40 -top-40 h-[30rem] w-[30rem] rounded-full bg-accent/25 blur-[130px]' />
+      <div className='container-x relative py-24 sm:py-32'>
+        <div className='mb-14 max-w-2xl'>
+          <p className='eyebrow mb-4'><span className='h-px w-6 bg-accent' />How it works</p>
+          <h2 className='font-display text-4xl font-semibold leading-[1] tracking-tightest sm:text-6xl'>
+            Three steps. <span className='accent-italic'>Zero drama.</span>
           </h2>
         </div>
-
-        <div className='grid grid-cols-1 sm:grid-cols-3 gap-6'>
-
-          {/* Kartica 1 */}
-          <div className='flex flex-col items-center text-center rounded-2xl p-8 transition-all duration-200 hover:-translate-y-1'
-            style={{ background: '#FDF9F4', border: '1px solid #DDD7CC', boxShadow: '0 1px 4px rgba(26,22,18,0.05)' }}>
-            <div className='w-20 h-20 rounded-2xl flex items-center justify-center mb-6'
-              style={{ background: 'rgba(224,123,42,0.1)' }}>
-              <svg className='w-10 h-10' fill='none' viewBox='0 0 24 24' stroke='#E07B2A' strokeWidth={1.5}>
-                <path strokeLinecap='round' strokeLinejoin='round' d='M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z' />
-              </svg>
+        <FadeContent stagger={0.15} blur={6} className='grid gap-4 md:grid-cols-3'>
+          {steps.map((s) => (
+            <div key={s.n} className='group relative rounded-4xl border border-white/10 bg-white/[0.04] p-8 transition-colors duration-500 hover:border-accent/50 hover:bg-white/[0.07] sm:p-10'>
+              <p className='font-display text-6xl font-semibold italic text-accent'>{s.n}</p>
+              <h3 className='mt-10 font-display text-2xl font-semibold'>{s.title}</h3>
+              <p className='mt-3 text-white/60'>{s.text}</p>
+              <LuArrowUpRight className='absolute right-8 top-8 h-6 w-6 text-white/30 transition-all duration-500 group-hover:rotate-45 group-hover:text-accent' />
             </div>
-            <h3 className='text-lg font-bold mb-3' style={{ color: '#1A1612' }}>Besplatno oglašavanje</h3>
-            <p className='text-sm leading-relaxed' style={{ color: '#6B6158' }}>
-              Postavljanje oglasa na OglasiStan.rs je potpuno besplatno. Bez skrivenih troškova, bez provizije — samo vi i vaš oglas.
-            </p>
-          </div>
+          ))}
+        </FadeContent>
+      </div>
+    </section>
+  );
+}
 
-          {/* Kartica 2 */}
-          <div className='flex flex-col items-center text-center rounded-2xl p-8 transition-all duration-200 hover:-translate-y-1'
-            style={{ background: '#FDF9F4', border: '1px solid #DDD7CC', boxShadow: '0 1px 4px rgba(26,22,18,0.05)' }}>
-            <div className='w-20 h-20 rounded-2xl flex items-center justify-center mb-6'
-              style={{ background: 'rgba(224,123,42,0.1)' }}>
-              <svg className='w-10 h-10' fill='none' viewBox='0 0 24 24' stroke='#E07B2A' strokeWidth={1.5}>
-                <path strokeLinecap='round' strokeLinejoin='round' d='M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.135-3.026-2.74-3.207a48.394 48.394 0 00-5.51-.278c-1.605 0-3.192.074-4.76.222-1.605.15-2.74 1.555-2.74 3.177v4.286c0 1.136.847 2.1 1.98 2.193.34.027.68.052 1.02.072v3.091l3-3h.5' />
-              </svg>
-            </div>
-            <h3 className='text-lg font-bold mb-3' style={{ color: '#1A1612' }}>Direktna komunikacija</h3>
-            <p className='text-sm leading-relaxed' style={{ color: '#6B6158' }}>
-              Komunicirajte direktno sa vlasnicima nekretnina bez posrednika. Brzo, lako i transparentno — samo par klikova do dogovora.
-            </p>
-          </div>
+/* ─────────────────────────── CTA ─────────────────────────── */
+function CTA() {
+  return (
+    <section className='container-x py-24 sm:py-32'>
+      <div className='noise relative overflow-hidden rounded-[2.5rem] bg-accent px-6 py-20 text-center text-white sm:px-12 sm:py-24'>
+        <div className='absolute -left-20 -top-24 h-72 w-72 animate-drift rounded-full bg-accent-amber/60 blur-[90px]' />
+        <div className='absolute -bottom-28 -right-16 h-80 w-80 animate-drift rounded-full bg-accent-deep/70 blur-[100px]' style={{ animationDelay: '-7s' }} />
+        <LuHouse className='absolute -bottom-10 -left-6 h-56 w-56 rotate-[-12deg] text-white/10' />
 
-          {/* Kartica 3 */}
-          <div className='flex flex-col items-center text-center rounded-2xl p-8 transition-all duration-200 hover:-translate-y-1'
-            style={{ background: '#FDF9F4', border: '1px solid #DDD7CC', boxShadow: '0 1px 4px rgba(26,22,18,0.05)' }}>
-            <div className='w-20 h-20 rounded-2xl flex items-center justify-center mb-6'
-              style={{ background: 'rgba(224,123,42,0.1)' }}>
-              <svg className='w-10 h-10' fill='none' viewBox='0 0 24 24' stroke='#E07B2A' strokeWidth={1.5}>
-                <path strokeLinecap='round' strokeLinejoin='round' d='M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z' />
-              </svg>
-            </div>
-            <h3 className='text-lg font-bold mb-3' style={{ color: '#1A1612' }}>Provereni oglasi</h3>
-            <p className='text-sm leading-relaxed' style={{ color: '#6B6158' }}>
-              Svi oglasi na platformi objavljuju registrovani korisnici. Nema anonimnih lažnih ponuda — znate tačno s kim komunicirate.
-            </p>
+        <div className='relative'>
+          <p className='mb-6 text-xs font-bold uppercase tracking-[0.18em] text-white/80'>Got a place?</p>
+          <h2 className='mx-auto max-w-3xl font-display font-semibold leading-[1] tracking-tightest' style={{ fontSize: 'clamp(2.6rem, 6.5vw, 5.5rem)' }}>
+            List it in two minutes. <span className='font-display italic'>Pay nothing.</span>
+          </h2>
+          <div className='mt-11 flex flex-col items-center justify-center gap-3 sm:flex-row'>
+            <Link to='/create-listing' className='btn-dark !px-8 !py-4 text-base hover:!bg-white hover:!text-espresso'>
+              Post a listing <LuArrowRight className='h-5 w-5' />
+            </Link>
+            <Link to='/search' className='btn !px-8 !py-4 text-base text-white ring-1 ring-white/50 hover:-translate-y-0.5 hover:bg-white/10'>
+              Browse listings
+            </Link>
           </div>
-
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────── PAGE ─────────────────────────── */
+export default function Home() {
+  const [latest, setLatest] = useState(null);
+  const [rentals, setRentals] = useState(null);
+  const [stats, setStats] = useState({ total: null, sale: null, rent: null });
+
+  useEffect(() => {
+    getJSON('/api/listing/search?sort=createdAt&order=desc&limit=8').then((d) => {
+      setLatest(d?.listings || []);
+      setStats((s) => ({ ...s, total: d?.total ?? 0 }));
+    });
+    getJSON('/api/listing/search?type=izdavanje&sort=regularPrice&order=asc&limit=4').then((d) => {
+      setRentals(d?.listings || []);
+      setStats((s) => ({ ...s, rent: d?.total ?? 0 }));
+    });
+    getJSON('/api/listing/search?type=prodaja&limit=1').then((d) => {
+      setStats((s) => ({ ...s, sale: d?.total ?? 0 }));
+    });
+  }, []);
+
+  return (
+    <div className='overflow-x-clip'>
+      <Hero stats={stats} featured={latest?.[0]} />
+
+      {/* Traka sa gradovima */}
+      <section className='border-y border-line bg-sand py-6 sm:py-8'>
+        <ScrollVelocity
+          texts={[CITIES.join('  ·  ') + '  ·  ', 'Apartments  ·  Houses  ·  Studios  ·  Lofts  ·  Penthouses  ·  ']}
+          velocity={40}
+          outlineAlternate
+          fadeEdges
+          color='#1A1612'
+          scrollerClassName='scroller !font-display !font-semibold !text-4xl sm:!text-6xl !leading-[1.2] !tracking-tight'
+        />
       </section>
+
+      <section className='container-x pt-24 sm:pt-32'>
+        <SectionHeading
+          eyebrow='Fresh on the market'
+          title='Just'
+          accent='listed.'
+          linkTo='/search?sort=createdAt&order=desc'
+          linkLabel='All listings'
+        />
+        {latest === null ? (
+          <ListingGrid items={null} count={8} />
+        ) : (
+          <ListingGrid items={latest} emptyText='No listings yet. The market is wide open — post the first one.' />
+        )}
+      </section>
+
+      <Features />
+      <HowItWorks />
+
+      <section className='container-x pt-24 sm:pt-32'>
+        <SectionHeading
+          eyebrow='For rent'
+          title='Rentals that'
+          accent='won’t hurt.'
+          description='The most affordable rentals on the platform right now, sorted by price.'
+          linkTo='/search?type=izdavanje&sort=regularPrice&order=asc'
+          linkLabel='All rentals'
+        />
+        {rentals === null ? (
+          <ListingGrid items={null} />
+        ) : (
+          <ListingGrid items={rentals} emptyText='No rentals listed yet. Got a flat to rent out?' />
+        )}
+      </section>
+
+      <CTA />
     </div>
   );
 }
